@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>OROptimizer</RootNamespace>
+    <Version>2.0.0</Version>
+    <Authors>Artak Hakobyan</Authors>
+    <Company>OROptimizer</Company>
+    <Product>OROptimizer</Product>
+    <Description>A shared library used in OROptimizer as well as in some other related projects</Description>
+    <Copyright>Copyright 2018 (c) OROptimizer. All rights reserved.</Copyright>
+    <PackageTags>OROptimizer Log dynamic code</PackageTags>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
+    <PackageLicenseUrl>https://opensource.org/licenses/mit-license.php</PackageLicenseUrl>
+    <PackageReleaseNotes>Some changes to support  IoC.Configuration 2.0. Should not be used with IoC.Configuration 1.x.x since this version was not tested with version earlier than IoC.Configuration 2.0 . Use OROptimizer.Shared 1.0.0 with earlier versions of IoC.Configuration.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;DYNAMIC_CODE_DIAGNOSTICS_TYPE_1;NETSTANDARD2_0</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>bin\Debug\netstandard2.0\OROptimizer.Shared.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>bin\Release\netstandard2.0\OROptimizer.Shared.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="10.2.1" />
+    <PackageReference Include="log4net" Version="2.0.6" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.3.2" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

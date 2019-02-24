@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2009
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OROptimizer.Shared", "OROptimizer.Shared\OROptimizer.Shared.csproj", "{59346FE3-F473-48A7-8982-32A831131E3A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OROptimizer.Shared.Tests", "OROptimizer.Shared.Tests\OROptimizer.Shared.Tests.csproj", "{DBFD6B8C-459F-4541-B641-5D110B192852}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59346FE3-F473-48A7-8982-32A831131E3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59346FE3-F473-48A7-8982-32A831131E3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59346FE3-F473-48A7-8982-32A831131E3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59346FE3-F473-48A7-8982-32A831131E3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBFD6B8C-459F-4541-B641-5D110B192852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBFD6B8C-459F-4541-B641-5D110B192852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBFD6B8C-459F-4541-B641-5D110B192852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBFD6B8C-459F-4541-B641-5D110B192852}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2AE98D41-F43C-41DA-91A2-328E74A4F713}
+	EndGlobalSection
+EndGlobal
