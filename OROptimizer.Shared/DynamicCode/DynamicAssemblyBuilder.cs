@@ -267,7 +267,6 @@ namespace OROptimizer.DynamicCode
             dynamicallyGeneratedClass.FinalizeAndAddToAssembly();
         }
 
-
         /// <inheritdoc />
         public IDynamicallyGeneratedClass GetDynamicallyGeneratedClass(string className, string classNamespace = null)
         {
@@ -277,9 +276,7 @@ namespace OROptimizer.DynamicCode
                 : null;
         }
 
-        /// <summary>
-        ///     Call this method if the assembly generation should be aborted.
-        /// </summary>
+        /// <inheritdoc />
         public void SetIsAborted()
         {
             BuildStatus = AssemblyBuildStatus.Aborted;
@@ -287,6 +284,12 @@ namespace OROptimizer.DynamicCode
 
         /// <inheritdoc />
         public IDynamicallyGeneratedClass StartDynamicallyGeneratedClass(string className, string classNamespace)
+        {
+            return StartDynamicallyGeneratedClass(className, new string[0], classNamespace);
+        }
+
+        /// <inheritdoc />
+        public IDynamicallyGeneratedClass StartDynamicallyGeneratedClass(string className, IEnumerable<string> baseClassesAndInterfaces, string classNamespace = null)
         {
             if (classNamespace == null)
                 classNamespace = DefaultNamespace;
@@ -299,7 +302,7 @@ namespace OROptimizer.DynamicCode
                 return dynamicallyGeneratedClass;
             }
 
-            dynamicallyGeneratedClass = new DynamicallyGeneratedClass(this, className, classNamespace);
+            dynamicallyGeneratedClass = new DynamicallyGeneratedClass(this, className, classNamespace, baseClassesAndInterfaces);
             _classFullNameToDynamicallyGeneratedClass[classFullName] = dynamicallyGeneratedClass;
 
             return dynamicallyGeneratedClass;

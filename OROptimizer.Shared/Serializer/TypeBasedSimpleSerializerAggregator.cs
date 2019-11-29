@@ -58,6 +58,8 @@ namespace OROptimizer.Serializer
             _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerDateTime());
             _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerGuid());
             _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerString());
+            _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerType());
+            _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerAssembly());
         }
 
         #endregion
@@ -142,6 +144,17 @@ namespace OROptimizer.Serializer
 
             _typeToSerializerMap[typeBasedSimpleSerializer.SerializedType] = typeBasedSimpleSerializer;
             return true;
+        }
+
+
+        /// <summary>
+        ///     Removes a serializer for the specified type, if one was registered before.
+        /// </summary>
+        /// <param name="serializedType">The type being unregistered.</param>
+        /// <returns></returns>
+        public bool UnRegister(Type serializedType)
+        {
+            return _typeToSerializerMap.Remove(serializedType);
         }
 
         /// <summary>

@@ -28,6 +28,8 @@ using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
 using OROptimizer.Diagnostics.Log;
+using System.Linq;
+using System.Reflection;
 
 namespace OROptimizer.DynamicCode
 {
@@ -50,8 +52,16 @@ namespace OROptimizer.DynamicCode
 
         #region  Constructors
 
+        /// <summary>
+        /// Dynamically generated class data.
+        /// </summary>
+        /// <param name="dynamicAssemblyBuilder">An instance of <see cref="IDynamicAssemblyBuilder"/></param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
+        /// <param name="baseClassesAndInterfaces">List of full base class or interface names.</param>
         public DynamicallyGeneratedClass([NotNull] IDynamicAssemblyBuilder dynamicAssemblyBuilder,
-                                         [NotNull] string className, [NotNull] string classNamespace)
+                                         [NotNull] string className, [NotNull] string classNamespace,
+                                         [NotNull, ItemNotNull] IEnumerable<string> baseClassesAndInterfaces)
         {
             _dynamicAssemblyBuilder = dynamicAssemblyBuilder;
 
@@ -62,9 +72,16 @@ namespace OROptimizer.DynamicCode
             _sharpCode.AppendLine($"namespace {ClassNamespace}");
             _sharpCode.AppendLine("{");
             _sharpCode.AppendLine($"public class {ClassName}");
+
+            if (baseClassesAndInterfaces.Any())
+            {
+                _sharpCode.Append(": ");
+                _sharpCode.AppendLine(string.Join(",", baseClassesAndInterfaces));
+            }
+
             _sharpCode.AppendLine("{");
         }
-
+       
         #endregion
 
         #region IDynamicallyGeneratedClass Interface Implementation
@@ -177,13 +194,126 @@ namespace OROptimizer.DynamicCode
             if (returnedValueType == typeof(void))
                 dynamicallyGeneratedMethodData.AddCode("void");
             else
-                dynamicallyGeneratedMethodData.AddCode(returnedValueType.FullName);
+                dynamicallyGeneratedMethodData.AddCode(returnedValueType.GetTypeNameInCSharpClass());
 
             dynamicallyGeneratedMethodData.AddCode(" ");
             dynamicallyGeneratedMethodData.AddCode(methodName);
 
             AddMethodSignature(dynamicallyGeneratedMethodData, parametersData);
             return dynamicallyGeneratedMethodData;
+        }
+
+        /// <inheritdoc />
+        public IDynamicallyGeneratedMethodData StartInterfaceImplementationMethod(MethodInfo methodInfo, bool isExplicitMethod)
+        {
+            if (methodInfo.IsStatic)
+                throw new ArgumentException($"Method '{methodInfo.Name}' cannot be a static method.", nameof(methodInfo));
+
+            if (!methodInfo.DeclaringType.IsInterface)
+                throw new ArgumentException($"Method '{methodInfo.Name}' should be an interface method.", nameof(methodInfo));
+
+            if (methodInfo.IsAssembly)
+                throw new ArgumentException($"Method '{methodInfo.Name}' cannot be overridden or implemented, since it has 'internal' visibility.", nameof(methodInfo));
+
+            string methodName;
+
+            if (isExplicitMethod)
+            {
+                methodName = $"{methodInfo.DeclaringType.GetTypeNameInCSharpClass()}.{methodInfo.Name}";
+            }
+            else
+            {
+                methodName = methodInfo.Name;
+            }
+
+            IDynamicallyGeneratedMethodData dynamicallyGeneratedMethodData = new DynamicallyGeneratedMethodData(methodName);
+            _inProgressMethodsData.Add(dynamicallyGeneratedMethodData);
+
+            if (!isExplicitMethod)
+                dynamicallyGeneratedMethodData.AddCode("public ");
+            
+
+            if (methodInfo.ReturnType == typeof(void))
+                dynamicallyGeneratedMethodData.AddCode("void");
+            else
+                dynamicallyGeneratedMethodData.AddCode(methodInfo.ReturnType.GetTypeNameInCSharpClass());
+
+            dynamicallyGeneratedMethodData.AddCode(" ");
+          
+            dynamicallyGeneratedMethodData.AddCode(methodName);
+
+            AddOverriddenOrImplementedMethodSignature(dynamicallyGeneratedMethodData, methodInfo);
+
+            return dynamicallyGeneratedMethodData;
+        }
+
+        /// <inheritdoc />
+        public IDynamicallyGeneratedMethodData StartOverrideMethod(MethodInfo methodInfo)
+        {
+            if (methodInfo.IsStatic)
+                throw new ArgumentException($"Method '{methodInfo.Name}' cannot be a static method.", nameof(methodInfo));
+
+            if (methodInfo.IsAssembly)
+                throw new ArgumentException($"Method '{methodInfo.Name}' cannot be overridden or implemented, since it has 'internal' visibility.", nameof(methodInfo));
+
+            if (methodInfo.DeclaringType.IsInterface)
+                throw new ArgumentException($"Method '{methodInfo.Name}' should not be an interface method.", nameof(methodInfo));
+
+            if (methodInfo.IsFinal)
+                throw new ArgumentException($"Method '{methodInfo.Name}' is a final method and cannot be overridden.", nameof(methodInfo));
+
+            if (methodInfo.IsPrivate)
+                throw new ArgumentException($"Method '{methodInfo.Name}' should have either public or protected visibility.", nameof(methodInfo));
+
+            if (!methodInfo.IsVirtual)
+                throw new ArgumentException($"Method '{methodInfo.Name}' should be a virtual method.", nameof(methodInfo));
+
+            IDynamicallyGeneratedMethodData dynamicallyGeneratedMethodData = new DynamicallyGeneratedMethodData(methodInfo.Name);
+            _inProgressMethodsData.Add(dynamicallyGeneratedMethodData);
+
+            if (methodInfo.IsPublic)
+                dynamicallyGeneratedMethodData.AddCode("public");
+            else
+                dynamicallyGeneratedMethodData.AddCode("protected");
+         
+
+            dynamicallyGeneratedMethodData.AddCode(" override");
+
+            if (methodInfo.ReturnType == typeof(void))
+                dynamicallyGeneratedMethodData.AddCode("void");
+            else
+                dynamicallyGeneratedMethodData.AddCode(methodInfo.ReturnType.GetTypeNameInCSharpClass());
+
+            dynamicallyGeneratedMethodData.AddCode(" ");
+
+
+            dynamicallyGeneratedMethodData.AddCode(methodInfo.Name);
+
+            AddOverriddenOrImplementedMethodSignature(dynamicallyGeneratedMethodData, methodInfo);
+
+            return dynamicallyGeneratedMethodData;
+        }
+
+        private void AddOverriddenOrImplementedMethodSignature([NotNull] IDynamicallyGeneratedMethodData dynamicallyGeneratedMethodData, 
+                                                               MethodInfo methodInfo)
+        {
+            var parameterInfos = methodInfo.GetParameters();
+
+            var parametersData = new List<IMethodParameterInfo>(parameterInfos.Length);
+
+            foreach (var parameterInfo in parameterInfos)
+            {
+                var methodType = MethodParameterType.Normal;
+
+                if (parameterInfo.IsOut)
+                    methodType = MethodParameterType.Output;
+                else if (parameterInfo.IsRetval)
+                    methodType = MethodParameterType.Reference;
+
+                parametersData.Add(new MethodParameterInfo(parameterInfo.ParameterType, parameterInfo.Name, methodType));
+            }
+
+            AddMethodSignature(dynamicallyGeneratedMethodData, parametersData);
         }
 
         #endregion
@@ -213,9 +343,11 @@ namespace OROptimizer.DynamicCode
                     }
                 }
 
-                dynamicallyGeneratedFunctionData.AddCode(parameterData.ParameterType.FullName);
+                dynamicallyGeneratedFunctionData.AddCode(parameterData.ParameterType.GetTypeNameInCSharpClass());
                 dynamicallyGeneratedFunctionData.AddCode(" ");
                 dynamicallyGeneratedFunctionData.AddCode(parameterData.Name);
+
+                ++i;
             }
 
             dynamicallyGeneratedFunctionData.AddCode(")");

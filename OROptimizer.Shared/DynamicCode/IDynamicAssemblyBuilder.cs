@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace OROptimizer.DynamicCode
@@ -100,6 +101,17 @@ namespace OROptimizer.DynamicCode
         /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
         [NotNull]
         IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [CanBeNull] string classNamespace = null);
+
+
+        /// <summary>
+        ///     Starts the dynamically generated class.
+        /// </summary>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="baseClassesAndInterfaces">List of full base class or interface names.</param>
+        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
+        [NotNull]
+        IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [NotNull, ItemNotNull] IEnumerable<string> baseClassesAndInterfaces,
+                                                                  [CanBeNull] string classNamespace = null);
 
         #endregion
     }

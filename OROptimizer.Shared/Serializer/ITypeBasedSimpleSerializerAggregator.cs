@@ -79,6 +79,13 @@ namespace OROptimizer.Serializer
         bool Register([NotNull] ITypeBasedSimpleSerializer typeBasedSimpleSerializer);
 
         /// <summary>
+        ///     Removes a serializer for the specified type, if one was registered before.
+        /// </summary>
+        /// <param name="serializedType">The type being unregistered.</param>
+        /// <returns></returns>
+        bool UnRegister([NotNull] Type serializedType);
+
+        /// <summary>
         ///     Tries the deserialize the value in <paramref name="deserializedValue" /> into an on object of type
         ///     <paramref name="typeToDeserializeTo" />.
         /// </summary>
