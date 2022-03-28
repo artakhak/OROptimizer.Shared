@@ -35,36 +35,32 @@ namespace OROptimizer.DynamicCode
 {
     public class DynamicallyGeneratedClass : IDynamicallyGeneratedClass
     {
-        #region Member Variables
+        [NotNull]
+        private readonly List<IDynamicallyGeneratedConstructorData> _inProgressConstructorsData = new List<IDynamicallyGeneratedConstructorData>();
 
         [NotNull]
-        private readonly IDynamicAssemblyBuilder _dynamicAssemblyBuilder;
-
-        private readonly List<IDynamicallyGeneratedConstructorData> _inProgressConstructorsData = new List<IDynamicallyGeneratedConstructorData>();
         private readonly List<IDynamicallyGeneratedMethodData> _inProgressMethodsData = new List<IDynamicallyGeneratedMethodData>();
 
         [NotNull]
         private readonly StringBuilder _sharpCode = new StringBuilder();
 
-        private readonly HashSet<string> _usingStatments = new HashSet<string>();
+        [CanBeNull] private string _generatedFileContents;
 
-        #endregion
+        [NotNull]
+        private readonly HashSet<string> _usingStatements = new HashSet<string>();
 
-        #region  Constructors
+        [NotNull]
+        private readonly object _lockObject = new object();
 
         /// <summary>
         /// Dynamically generated class data.
         /// </summary>
-        /// <param name="dynamicAssemblyBuilder">An instance of <see cref="IDynamicAssemblyBuilder"/></param>
         /// <param name="className">Name of the class.</param>
         /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
         /// <param name="baseClassesAndInterfaces">List of full base class or interface names.</param>
-        public DynamicallyGeneratedClass([NotNull] IDynamicAssemblyBuilder dynamicAssemblyBuilder,
-                                         [NotNull] string className, [NotNull] string classNamespace,
+        public DynamicallyGeneratedClass([NotNull] string className, [NotNull] string classNamespace,
                                          [NotNull, ItemNotNull] IEnumerable<string> baseClassesAndInterfaces)
         {
-            _dynamicAssemblyBuilder = dynamicAssemblyBuilder;
-
             ClassName = className;
             ClassNamespace = classNamespace;
             ClassFullName = $"{ClassNamespace}.{ClassName}";
@@ -81,86 +77,122 @@ namespace OROptimizer.DynamicCode
 
             _sharpCode.AppendLine("{");
         }
-       
-        #endregion
 
-        #region IDynamicallyGeneratedClass Interface Implementation
+        private void LogErrorIfCSharpCodeWasFinalized(string methodName)
+        {
+            lock (_lockObject)
+            {
+                if (IsFinalized)
+                    LogHelper.Context.Log.ErrorFormat("Method '{0}' is called when {1} is true.", methodName, nameof(IsFinalized));
+            }
+        }
 
+        /// <inheritdoc />
         public void AddCode(string cSharpCode)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(AddCode));
             _sharpCode.Append(cSharpCode);
         }
 
+        /// <inheritdoc />
         public void AddCodeLine(string cSharpCode)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(AddCodeLine));
+
             AddCode(cSharpCode);
             _sharpCode.AppendLine();
         }
 
+        /// <inheritdoc />
+        public void AddUsingNamespaceStatement(string nameSpace)
+        {
+            LogErrorIfCSharpCodeWasFinalized(nameof(AddUsingNamespaceStatement));
+
+            if (!_usingStatements.Contains(nameSpace))
+                _usingStatements.Add(nameSpace);
+        }
+
+        /// <inheritdoc />
         public void AddUsingNamespaceStatment(string nameSpace)
         {
-            if (!_usingStatments.Contains(nameSpace))
-                _usingStatments.Add(nameSpace);
+            LogHelper.Context.Log.ErrorFormat("Method {0} was deprecated.", nameof(AddUsingNamespaceStatment));
+            AddUsingNamespaceStatement(nameSpace);
         }
 
+        /// <inheritdoc />
         public string ClassFullName { get; }
+
+        /// <inheritdoc />
         public string ClassName { get; }
 
+        /// <inheritdoc />
         public string ClassNamespace { get; }
 
-        public void FinalizeAndAddToAssembly()
+        /// <inheritdoc />
+        public string GenerateCSharpFile()
         {
-            if (IsFinalized)
+            lock (_lockObject)
             {
-                LogHelper.Context.Log.WarnFormat("The dynamic class '{0}.{1}' was already to dynamic assembly.",
-                    ClassNamespace, ClassName);
-                return;
+                if (_generatedFileContents != null)
+                {
+                    LogHelper.Context.Log.WarnFormat("The dynamic class '{0}.{1}' was already generated. Returning the previously generated file contents.",
+                        ClassNamespace, ClassName);
+                    return _generatedFileContents;
+                }
+
+                foreach (var constructorData in _inProgressConstructorsData)
+                {
+                    _sharpCode.AppendLine();
+                    _sharpCode.Append(constructorData.GetCode());
+                    _sharpCode.AppendLine();
+                }
+
+                foreach (var methodData in _inProgressMethodsData)
+                {
+                    _sharpCode.AppendLine();
+                    _sharpCode.Append(methodData.GetCode());
+                    _sharpCode.AppendLine();
+                }
+
+                _sharpCode.AppendLine("}");
+                _sharpCode.AppendLine("}");
+
+                StringBuilder generatedFileContents;
+
+                if (_usingStatements.Count > 0)
+                {
+                    generatedFileContents = new StringBuilder();
+
+                    foreach (var referencedNamespace in _usingStatements)
+                        generatedFileContents.AppendLine($"using {referencedNamespace};");
+
+                    generatedFileContents.Append(_sharpCode);
+                }
+                else
+                {
+                    generatedFileContents = _sharpCode;
+                }
+
+                _generatedFileContents = generatedFileContents.ToString();
+                return _generatedFileContents;
             }
-
-            IsFinalized = true;
-
-            foreach (var inProgressFunctionData in _inProgressConstructorsData)
-            {
-                _sharpCode.Append(inProgressFunctionData.GetCode());
-                _sharpCode.AppendLine();
-            }
-
-            foreach (var inProgressFunctionData in _inProgressMethodsData)
-            {
-                _sharpCode.Append(inProgressFunctionData.GetCode());
-                _sharpCode.AppendLine();
-            }
-
-            _sharpCode.AppendLine("}");
-            _sharpCode.AppendLine("}");
-
-
-            StringBuilder sharpCodeWithUsingStamentes;
-
-            if (_usingStatments.Count > 0)
-            {
-                sharpCodeWithUsingStamentes = new StringBuilder();
-
-                foreach (var referencedNamespace in _usingStatments)
-                    sharpCodeWithUsingStamentes.AppendLine($"using {referencedNamespace};");
-
-                sharpCodeWithUsingStamentes.Append(_sharpCode);
-            }
-            else
-            {
-                sharpCodeWithUsingStamentes = _sharpCode;
-            }
-
-            _dynamicAssemblyBuilder.AddCSharpFile(sharpCodeWithUsingStamentes.ToString());
         }
 
-        /// <summary>
-        ///     Indicates weather the class was added to assembly.
-        /// </summary>
-        public bool IsFinalized { get; private set; }
+        /// <inheritdoc />
+        public void FinalizeAndAddToAssembly()
+        {
+            LogHelper.Context.Log.ErrorFormat("Method {0} was deprecated.", nameof(FinalizeAndAddToAssembly));
+            GenerateCSharpFile();
+        }
 
+        /// <inheritdoc />
+        public bool IsFinalized => _generatedFileContents != null;
+
+        /// <inheritdoc />
         public IDynamicallyGeneratedConstructorData StartConstructor(IEnumerable<IParameterInfo> parametersData, AccessLevel accessLevel, bool isStatic)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(StartConstructor));
+
             IDynamicallyGeneratedConstructorData dynamicallyGeneratedConstructorData = new DynamicallyGeneratedConstructorData();
             _inProgressConstructorsData.Add(dynamicallyGeneratedConstructorData);
 
@@ -179,6 +211,8 @@ namespace OROptimizer.DynamicCode
         /// <inheritdoc />
         public IDynamicallyGeneratedMethodData StartMethod(string methodName, Type returnedValueType, IEnumerable<IMethodParameterInfo> parametersData, AccessLevel accessLevel, bool isStatic, bool addUniqueIdPostfix)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(StartMethod));
+
             if (addUniqueIdPostfix)
                 methodName = $"{methodName}_{GlobalsCoreAmbientContext.Context.GenerateUniqueId()}";
 
@@ -206,10 +240,12 @@ namespace OROptimizer.DynamicCode
         /// <inheritdoc />
         public IDynamicallyGeneratedMethodData StartInterfaceImplementationMethod(MethodInfo methodInfo, bool isExplicitMethod)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(StartInterfaceImplementationMethod));
+
             if (methodInfo.IsStatic)
                 throw new ArgumentException($"Method '{methodInfo.Name}' cannot be a static method.", nameof(methodInfo));
 
-            if (!methodInfo.DeclaringType.IsInterface)
+            if (!methodInfo.DeclaringType?.IsInterface??false)
                 throw new ArgumentException($"Method '{methodInfo.Name}' should be an interface method.", nameof(methodInfo));
 
             if (methodInfo.IsAssembly)
@@ -231,7 +267,6 @@ namespace OROptimizer.DynamicCode
 
             if (!isExplicitMethod)
                 dynamicallyGeneratedMethodData.AddCode("public ");
-            
 
             if (methodInfo.ReturnType == typeof(void))
                 dynamicallyGeneratedMethodData.AddCode("void");
@@ -250,13 +285,15 @@ namespace OROptimizer.DynamicCode
         /// <inheritdoc />
         public IDynamicallyGeneratedMethodData StartOverrideMethod(MethodInfo methodInfo)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(StartOverrideMethod));
+
             if (methodInfo.IsStatic)
                 throw new ArgumentException($"Method '{methodInfo.Name}' cannot be a static method.", nameof(methodInfo));
 
             if (methodInfo.IsAssembly)
                 throw new ArgumentException($"Method '{methodInfo.Name}' cannot be overridden or implemented, since it has 'internal' visibility.", nameof(methodInfo));
 
-            if (methodInfo.DeclaringType.IsInterface)
+            if (methodInfo.DeclaringType?.IsInterface??false)
                 throw new ArgumentException($"Method '{methodInfo.Name}' should not be an interface method.", nameof(methodInfo));
 
             if (methodInfo.IsFinal)
@@ -275,7 +312,6 @@ namespace OROptimizer.DynamicCode
                 dynamicallyGeneratedMethodData.AddCode("public");
             else
                 dynamicallyGeneratedMethodData.AddCode("protected");
-         
 
             dynamicallyGeneratedMethodData.AddCode(" override");
 
@@ -285,7 +321,6 @@ namespace OROptimizer.DynamicCode
                 dynamicallyGeneratedMethodData.AddCode(methodInfo.ReturnType.GetTypeNameInCSharpClass());
 
             dynamicallyGeneratedMethodData.AddCode(" ");
-
 
             dynamicallyGeneratedMethodData.AddCode(methodInfo.Name);
 
@@ -297,6 +332,8 @@ namespace OROptimizer.DynamicCode
         private void AddOverriddenOrImplementedMethodSignature([NotNull] IDynamicallyGeneratedMethodData dynamicallyGeneratedMethodData, 
                                                                MethodInfo methodInfo)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(AddOverriddenOrImplementedMethodSignature));
+
             var parameterInfos = methodInfo.GetParameters();
 
             var parametersData = new List<IMethodParameterInfo>(parameterInfos.Length);
@@ -316,12 +353,10 @@ namespace OROptimizer.DynamicCode
             AddMethodSignature(dynamicallyGeneratedMethodData, parametersData);
         }
 
-        #endregion
-
-        #region Member Functions
-
         private void AddMethodSignature(IDynamicallyGeneratedFunctionData dynamicallyGeneratedFunctionData, IEnumerable<IParameterInfo> parametersData)
         {
+            LogErrorIfCSharpCodeWasFinalized(nameof(AddMethodSignature));
+
             dynamicallyGeneratedFunctionData.AddCode("(");
 
             var i = 0;
@@ -358,7 +393,5 @@ namespace OROptimizer.DynamicCode
         {
             return accessLevel.ToString().ToLower();
         }
-
-        #endregion
     }
 }

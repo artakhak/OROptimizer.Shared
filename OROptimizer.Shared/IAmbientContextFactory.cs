@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -25,25 +25,19 @@
 
 using JetBrains.Annotations;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Ambient context factory.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    /// <typeparam name="TContext"></typeparam>
+    public interface IAmbientContextFactory<out TContext> where TContext : class
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Creates an instance of <typeparamref name="TContext"/>.
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
-
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <returns></returns>
+        [NotNull]
+        TContext Create();
     }
 }

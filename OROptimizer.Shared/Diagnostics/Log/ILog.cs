@@ -34,8 +34,6 @@ namespace OROptimizer.Diagnostics.Log
     /// </summary>
     public interface ILog
     {
-        #region Current Type Interface
-
         void Debug([NotNull] string message);
         void Debug([NotNull] string message, [NotNull] Exception exception);
 
@@ -73,7 +71,5 @@ namespace OROptimizer.Diagnostics.Log
 
         [StringFormatMethod("format")]
         void WarnFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
-
-        #endregion
     }
 }

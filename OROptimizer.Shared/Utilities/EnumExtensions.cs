@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,27 +23,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Utilities
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Extension methods for <see cref="Enum"/> type.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public static class EnumExtensions
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Returns list of enum values in <typeparamref name="TEnum"/>.
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        public static IReadOnlyList<TEnum> GetValues<TEnum>() where TEnum : Enum
+        {
+            var enumValues = new List<TEnum>();
 
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+            foreach (var enumValueObj in Enum.GetValues(typeof(TEnum)))
+                enumValues.Add((TEnum) enumValueObj);
+
+            return enumValues;
+        }
     }
 }

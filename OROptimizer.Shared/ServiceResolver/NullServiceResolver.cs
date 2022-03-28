@@ -23,13 +23,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
+using System;
 
-namespace OROptimizer
+namespace OROptimizer.ServiceResolver
 {
-    public class Delegates
+    /// <summary>
+    /// An implementation of <see cref="IServiceProvider"/> which does not resolve any services.
+    /// </summary>
+    public class NullServiceResolver : IServiceResolver
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
+        /// <inheritdoc />
+        public T Resolve<T>() where T : class
+        {
+            throw new System.ArgumentException($"Failed to resolve type '{typeof(T)}'.");
+        }
+
+        /// <inheritdoc />
+        public object Resolve(Type type)
+        {
+            throw new System.ArgumentException($"Failed to resolve type '{type}'.");
+        }
     }
 }

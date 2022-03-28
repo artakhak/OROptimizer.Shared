@@ -23,13 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
-
-namespace OROptimizer
+namespace OROptimizer.Diagnostics
 {
-    public class Delegates
+    /// <summary>
+    /// An implementation of <see cref="IObjectsCache{TObjectInfo}"/> for the case the type in generic type parameter
+    /// in <see cref="IObjectsCache{TObjectInfo}"/> is <see cref="ObjectInfo"/>.
+    /// </summary>
+    public class ObjectsCacheDefault : ObjectsCache<ObjectInfo>
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
+        /// <inheritdoc />
+        public ObjectsCacheDefault() : base((obj, objectId) => new ObjectInfo(obj, objectId))
+        {
+        }
     }
 }

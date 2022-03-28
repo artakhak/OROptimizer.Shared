@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -25,25 +25,24 @@
 
 using JetBrains.Annotations;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Diagnostics
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// A cache of objects stored in object wrappers of type <typeparamref name="TObjectInfo"/>.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    /// <typeparam name="TObjectInfo">Generic type of object wrapper.</typeparam>
+    public interface IObjectsCache<out TObjectInfo> where TObjectInfo: ObjectInfo
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Returns the object wrapper for cached object <paramref name="obj"/>.
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        TObjectInfo GetOrCreateObjectInfo([NotNull] object obj);
 
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Returns the object wrapper for cached object with <see cref="ObjectInfo.ObjectId"/> equal to <paramref name="objectId"/>.
         /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <param name="objectId">Unique object Id.</param>
+        /// <returns></returns>
+        TObjectInfo TryGetObjectInfoById(long objectId);
     }
 }

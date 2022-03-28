@@ -1,5 +1,7 @@
+﻿extensions: designer.cs generated.cs
+extensions: .cs .cpp .h
 // This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -22,28 +24,13 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-
-using JetBrains.Annotations;
-
-namespace OROptimizer.DynamicCode
-{
-    /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
-    /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
-    {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
-
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
-    }
-}
+extensions: .aspx .ascx
+<%-- 
+Copyright (c) 2011 rubicon IT GmbH
+--%>
+extensions: .vb
+'Sample license text.
+extensions:  .xml .config .xsd
+<!--
+Sample license text.
+-->

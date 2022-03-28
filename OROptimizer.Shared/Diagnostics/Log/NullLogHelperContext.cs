@@ -1,5 +1,5 @@
 // This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,27 +23,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
+using System;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Diagnostics.Log
 {
-    /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
-    /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    /// <inheritdoc />
+    public class NullLogHelperContext : LogHelperContextAbstr
     {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        /// <inheritdoc />
+        public NullLogHelperContext()
+        {
+           
+        }
 
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <inheritdoc />
+        protected override ILog CreateLog(Type typeThatOwnsTheLog)
+        {
+            return new NullLog();
+        }
     }
 }

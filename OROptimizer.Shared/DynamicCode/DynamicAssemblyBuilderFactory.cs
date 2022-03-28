@@ -1,5 +1,5 @@
 // This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+// Copyright ï¿½ 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -30,20 +30,17 @@ namespace OROptimizer.DynamicCode
     /// </summary>
     public class DynamicAssemblyBuilderFactory : IDynamicAssemblyBuilderFactory
     {
-        #region IDynamicAssemblyBuilderFactory Interface Implementation
-
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder(string dynamicAssemblyPath,
                                                                     Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete)
         {
             return new DynamicAssemblyBuilder(dynamicAssemblyPath, onDynamicAssemblyEmitComplete);
         }
 
-        #endregion
+        /// <inheritdoc/>
+        public IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder(DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters)
+        {
+            return new DynamicAssemblyBuilder(dynamicAssemblyBuilderParameters);
+        }
     }
 }

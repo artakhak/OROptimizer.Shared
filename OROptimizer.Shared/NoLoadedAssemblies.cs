@@ -23,13 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace OROptimizer
 {
-    public class Delegates
+    /// <summary>
+    /// Implementation of <see cref="ILoadedAssemblies"/> that returns an empty list for loaded assembles.
+    /// </summary>
+    public class NoLoadedAssemblies : ILoadedAssemblies
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
+        /// <inheritdoc />
+        public IEnumerable<Assembly> GetAssemblies()
+        {
+            return new List<Assembly>(0);
+        }
     }
 }

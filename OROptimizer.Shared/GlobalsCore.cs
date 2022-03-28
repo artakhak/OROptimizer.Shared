@@ -23,23 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using JetBrains.Annotations;
+using OROptimizer.Diagnostics.Log;
+using OROptimizer.DynamicCode;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
-using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
-using OROptimizer.DynamicCode;
 
 namespace OROptimizer
 {
     public class GlobalsCore : IGlobalsCore
     {
-        #region Member Variables
-
         [NotNull]
         private readonly IDynamicAssemblyBuilderFactory _dynamicAssemblyBuilderFactory;
 
@@ -51,16 +48,12 @@ namespace OROptimizer
         [NotNull]
         private readonly object _lockObjectUniqueId = new object();
 
-        #endregion
-
-        #region  Constructors
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="GlobalsCore" /> class.
         /// </summary>
-        public GlobalsCore() : this(new DynamicAssemblyBuilderFactory())
+        public GlobalsCore() : this(new DynamicAssemblyBuilderFactory()) 
+
         {
-            EntryAssemblyFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         }
 
         /// <summary>
@@ -69,12 +62,9 @@ namespace OROptimizer
         /// <param name="dynamicAssemblyBuilderFactory">The dynamic assembly builder factory.</param>
         public GlobalsCore([NotNull] IDynamicAssemblyBuilderFactory dynamicAssemblyBuilderFactory)
         {
+            EntryAssemblyFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             _dynamicAssemblyBuilderFactory = dynamicAssemblyBuilderFactory;
         }
-
-        #endregion
-
-        #region IGlobalsCore Interface Implementation
 
         /// <summary>
         ///     Checks the type constructor existence.
@@ -110,8 +100,6 @@ namespace OROptimizer
                                                   out ConstructorInfo constructorInfo, out string errorMessage)
         {
             errorMessage = null;
-            constructorInfo = null;
-
             constructorInfo = type.GetConstructor(constructorParametersTypes);
 
             if (constructorInfo == null || !constructorInfo.IsPublic)
@@ -154,11 +142,7 @@ namespace OROptimizer
             Assembly loadedAssembly = null;
             try
             {
-                loadedAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyFilePath);
-
-                // Normally exception would be thrown, so we shouldn't get here. This is for getting rid of warning.
-                if (loadedAssembly == null)
-                    return null;
+                loadedAssembly = LoadAssembly(assemblyFilePath);
             }
             catch (Exception e)
             {
@@ -179,6 +163,17 @@ namespace OROptimizer
             }
 
             return (T) CreateInstance(typeof(T), type, constructorParameters, out var errorMessage);
+        }
+
+        /// <summary>
+        /// Loads the assembly using from file <paramref name="assemblyFilePath"/>.
+        /// </summary>
+        /// <param name="assemblyFilePath">Assembly file path.</param>
+        /// <returns>Returns the loaded assembly.</returns>
+        /// <exception cref="Exception">Throws an exception if load fails.</exception>
+        public System.Reflection.Assembly LoadAssembly([NotNull] string assemblyFilePath)
+        {
+            return Assembly.LoadFrom(assemblyFilePath);
         }
 
         /// <summary>
@@ -235,19 +230,17 @@ namespace OROptimizer
         [NotNull]
         public string EntryAssemblyFolder { get; }
 
-
         public long GenerateUniqueId()
         {
             lock (_lockObjectUniqueId)
             {
                 var generatedId = DateTime.Now.Ticks;
 
-
-                if (_lastGeneratedId >= generatedId)
-                    generatedId = _lastGeneratedId + 1;
-
 #if DEBUG && GENERATE_AUTOINCREMENTED_IDS
                 generatedId = _lastGeneratedId + 1;
+#else
+                if (_lastGeneratedId >= generatedId)
+                    generatedId = _lastGeneratedId + 1;
 #endif
 
                 _lastGeneratedId = generatedId;
@@ -286,68 +279,29 @@ namespace OROptimizer
             throw new Exception(exceptionMessage);
         }
 
-        #endregion
-
-        #region Current Type Interface
-
 #pragma warning disable CS0419, CS1574
-        /// <summary>
-        ///     Starts the dynamic assembly builder and returns an instance of <see cref="IDynamicAssemblyBuilder" />.
-        ///     Use the value of <see cref="IGlobalsCore.CurrentInProgressDynamicAssemblyBuilder" />
-        ///     anywhere in code to add C# files and referenced assemblies to the assembly being generated.
-        ///     Example usage of this method is as follows:
-        ///     <para />
-        ///     using(var assemblyBuilder = <see cref="StartDynamicAssemblyBuilder" />("c:\DynamicallyGeneratedAssembly1.dll"))
-        ///     <para />
-        ///     {
-        ///     <para />
-        ///     assemblyBuilder.<see cref="IDynamicAssemblyBuilder.AddReferencedAssembly" />(typeof(
-        ///     <see cref="ITypeBasedSimpleSerializerAggregator" />));
-        ///     <para />
-        ///     assemblyBuilder.AddReferencedAssembly("MyReferencedAssembly1.dll");
-        ///     <para />
-        ///     AddCSharpFile1();
-        ///     <para />
-        ///     }
-        ///     <para />
-        ///     public void AddCSharpFile1()
-        ///     <para />
-        ///     {
-        ///     <para />
-        ///     var assemblyBuilder = <see cref="GlobalsCoreAmbientContext.Context.CurrentInProgressDynamicAssemblyBuilder" />;
-        ///     <para />
-        ///     var cSharpFile = null;
-        ///     <para />
-        ///     // generate C# file contents in cSharpFile
-        ///     <para />
-        ///     // ...
-        ///     <para />
-        ///     assemblyBuilder.AddCSharpFile(cSharpFile);
-        ///     <para />
-        ///     }
-        ///     <para />
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path, where dynamically generated assembly will be saved.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">
-        ///     Delegate <see cref="OnDynamicAssemblyEmitComplete" /> that will be called,
-        ///     when the dynamic assembly generation is complete.
-        /// </param>
-        /// <param name="addAllLoadedAssembliesAsReferences">
-        ///     if set to <c>true</c> all assemblies loaded into current application
-        ///     domain will be automatically added as referenced assemblies to the dynamically generated assembly.
-        /// </param>
-        /// <param name="referencedAssemblyPaths">
-        ///     Assembly paths for assemblies that will be added as references to generated
-        ///     assembly.
-        /// </param>
-        /// <returns>
-        ///     Returns an instance of <see cref="IDynamicAssemblyBuilder" />.
-        /// </returns>
-        /// <exception cref="System.Exception"></exception>
+
+        /// <inheritdoc />
         public virtual IDynamicAssemblyBuilder StartDynamicAssemblyBuilder(string dynamicAssemblyPath,
                                                                            Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete,
                                                                            bool addAllLoadedAssembliesAsReferences,
                                                                            params string[] referencedAssemblyPaths)
+        {
+            ILoadedAssemblies loadedAssemblies;
+
+            if (addAllLoadedAssembliesAsReferences)
+                loadedAssemblies = new AllLoadedAssemblies();
+            else
+                loadedAssemblies = new NoLoadedAssemblies();
+
+            return StartDynamicAssemblyBuilder(dynamicAssemblyPath, onDynamicAssemblyEmitComplete,
+                loadedAssemblies, referencedAssemblyPaths);
+        }
+
+        /// <inheritdoc />
+        public IDynamicAssemblyBuilder StartDynamicAssemblyBuilder(string dynamicAssemblyPath,
+            Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete,
+            ILoadedAssemblies loadedAssemblies, params string[] referencedAssemblyPaths)
         {
             lock (_lockObjectDynamicAssemblyBuilder)
             {
@@ -374,9 +328,10 @@ namespace OROptimizer
                         }
                     });
 
-                if (addAllLoadedAssembliesAsReferences)
-                    foreach (var assembly in GlobalsCoreAmbientContext.Context.GetAllLoadedAssemblies())
-                        CurrentInProgressDynamicAssemblyBuilder.AddReferencedAssembly(assembly.Location);
+                foreach (var assembly in loadedAssemblies.GetAssemblies())
+                {
+                    CurrentInProgressDynamicAssemblyBuilder.AddReferencedAssembly(assembly.Location);
+                }
 
                 if (referencedAssemblyPaths != null)
                     foreach (var referencedAssemblyPath in referencedAssemblyPaths)
@@ -386,11 +341,7 @@ namespace OROptimizer
             }
         }
 #pragma warning restore CS0419, CS1574
-
-        #endregion
-
-        #region Member Functions
-
+       
         private object TryCreateInstanceFromType(ConstructorInfo constructorInfo, ParameterInfo[] constructorParameters, out string errorMessage)
         {
             errorMessage = null;
@@ -406,7 +357,5 @@ namespace OROptimizer
                 return null;
             }
         }
-
-        #endregion
     }
 }

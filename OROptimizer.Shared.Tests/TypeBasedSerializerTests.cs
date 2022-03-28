@@ -1,20 +1,45 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
+// http://oroptimizer.com
+
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 using OROptimizer.Serializer;
 using System;
+using NUnit.Framework;
 
 namespace OROptimizer.Shared.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class TypeBasedSerializerTests
     {
-        [TestMethod]
+        [Test]
         public void StringSerializerTest()
         {
             var valueToDeserialize = @"c:\users\user1";
             SerializerTest(new TypeBasedSimpleSerializerString(), valueToDeserialize, valueToDeserialize, valueToDeserialize, "@\"c:\\users\\user1\"");
         }
 
-        [TestMethod]
+        [Test]
         public void BoolSerializerTest()
         {
             var valueToDeserialize = "true";
@@ -24,7 +49,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerBoolean(), valueToDeserialize, false, valueToDeserialize, "false");
         }
 
-        [TestMethod]
+        [Test]
         public void LongSerializerTest()
         {
             var valueToDeserialize = "9223372036854775807";
@@ -34,7 +59,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerLong(), valueToDeserialize, long.MinValue, valueToDeserialize, "-9223372036854775808");
         }
 
-        [TestMethod]
+        [Test]
         public void IntSerializerTest()
         {
             var valueToDeserialize = "2147483647";
@@ -44,7 +69,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerInt(), valueToDeserialize, int.MinValue, valueToDeserialize, "-2147483648");
         }
 
-        [TestMethod]
+        [Test]
         public void ShortSerializerTest()
         {
             var valueToDeserialize = "32767";
@@ -54,7 +79,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerShort(), valueToDeserialize, short.MinValue, valueToDeserialize, "-32768");
         }
 
-        [TestMethod]
+        [Test]
         public void ByteSerializerTest()
         {
             var valueToDeserialize = "255";
@@ -64,7 +89,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerByte(), valueToDeserialize, byte.MinValue, valueToDeserialize, "0");
         }
 
-        [TestMethod]
+        [Test]
         public void DoubleSerializerTest()
         {
             var valueToDeserialize = "3147483648.5894";
@@ -74,7 +99,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerDouble(), valueToDeserialize, -3147483648.5894, valueToDeserialize, valueToDeserialize);
         }
 
-        [TestMethod]
+        [Test]
         public void DateTimeSerializerTest()
         {
             DateTime dateTime = new DateTime(2019, 1, 15, 13, 17, 28, 535);
@@ -87,7 +112,7 @@ namespace OROptimizer.Shared.Tests
             SerializerTest(new TypeBasedSimpleSerializerDateTime(), valueToDeserialize, dateTime, valueToDeserialize, $"new System.DateTime({dateTime.Ticks})");
         }
 
-        [TestMethod]
+        [Test]
         public void GuidSerializerTest()
         {
             //var valueToDeserialize = @"c:\users\user1";

@@ -23,13 +23,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
 using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace OROptimizer
 {
-    public class Delegates
+    public interface IGenericTreeItem<TTreeItem> where TTreeItem : class
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
+        [NotNull]
+        TTreeItem TreeItemValue { get; }
+
+        [CanBeNull]
+        IGenericTreeItem<TTreeItem> ParentTreeItem { get; }
+
+        [NotNull, ItemNotNull]
+        List<IGenericTreeItem<TTreeItem>> ChildTreeItems { get; }
+    }
+
+    public class GenericTreeItem<TTreeItem> : IGenericTreeItem<TTreeItem> where TTreeItem : class
+    {
+        public GenericTreeItem([NotNull] TTreeItem treeItemValue, [CanBeNull] IGenericTreeItem<TTreeItem> parentTreeItem = null)
+        {
+            TreeItemValue = treeItemValue;
+            ParentTreeItem = parentTreeItem;
+        }
+
+        public TTreeItem TreeItemValue { get; }
+
+        public IGenericTreeItem<TTreeItem> ParentTreeItem { get; }
+
+        public List<IGenericTreeItem<TTreeItem>> ChildTreeItems { get; } = new List<IGenericTreeItem<TTreeItem>>();
     }
 }

@@ -23,13 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
-
-namespace OROptimizer
+namespace OROptimizer.ServiceResolver
 {
-    public class Delegates
+    /// <summary>
+    /// Ambient context for <see cref="IDiBasedObjectFactory"/>.
+    /// </summary>
+    public class DiBasedObjectFactoryAmbientContext : AmbientContext<IDiBasedObjectFactory, DiBasedObjectFactory>
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
     }
 }

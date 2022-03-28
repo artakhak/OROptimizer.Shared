@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -25,25 +25,33 @@
 
 using JetBrains.Annotations;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Diagnostics
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// A wrapper for an object of type <see cref="Object"/> passed as a constructor parameter.
+    /// Normally used for diagnostics, when we want to store objects in dictionary by Id.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public class ObjectInfo
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Constructor.
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        /// <param name="obj">The wrapped object.</param>
+        /// <param name="objectId">Unique object Id.</param>
+        public ObjectInfo([NotNull] object obj, long objectId)
+        {
+            Object = obj;
+            ObjectId = objectId;
+        }
 
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// The wrapped object.
         /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        public object Object { get; internal set; }
+
+        /// <summary>
+        /// Unique object Id.
+        /// </summary>
+        public long ObjectId { get; internal set; }
     }
 }

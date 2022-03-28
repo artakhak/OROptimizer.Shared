@@ -1,5 +1,5 @@
 // This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+// Copyright Â© 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -33,22 +33,47 @@ namespace OROptimizer.DynamicCode
     ///     Dynamic assembly generator for C# files.
     ///     Example:
     ///     <para />
-    ///     using(var assemblyGenerator = new DynamicAssemblyBuilder("c:\Assembly1.dll", null))
+    ///     using(var assemblyBuilder = new DynamicAssemblyBuilder("c:\Assembly1.dll", null))
     ///     {
-    ///     assemblyGenerator.AddReferencedAssembly("c:\Assembly1.dll");
-    ///     var cSharpFileContents = "C# file contents go here";
-    ///     assemblyGenerator.AddCSharpFile(cSharpFileContents);
+    ///     assemblyBuilder.AddReferencedAssembly("c:\Assembly1.dll");
+    ///    
+    ///     var classBuilderGenerator = assemblyBuilder.StartDynamicallyGeneratedClass("AppDataDirectoryProcessor", "IoC.Configuration");
+    ///     // Build the class using methods in OROptimizer.DynamicCode.IDynamicallyGeneratedClass,
+    ///     // like StartConstructor(), StartMethod(), AddCodeLine(),  
+    ///     classGenerator.StartConstructor(...);
+    /// 
+    ///     ...
+    ///
+    ///     assemblyBuilder.AddCSharpFile("namespace N1 {public class A1 {}}");
     ///     }
     /// </summary>
     /// <seealso cref="System.IDisposable" />
     public interface IDynamicAssemblyBuilder : IDisposable
     {
-        #region Current Type Interface
+        /// <summary>
+        ///     Starts the dynamically generated class and adds it to <see cref="IDynamicallyGeneratedClass"/>. Call 
+        /// </summary>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
+        [NotNull]
+        IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [CanBeNull] string classNamespace = null);
 
         /// <summary>
-        ///     Adds the c# sharp file to assembly generator.
+        ///     Starts the dynamically generated class.
         /// </summary>
-        /// <param name="cSharpFileContents">The c sharp file contents.</param>
+        /// <param name="className">Name of the class.</param>
+        /// <param name="baseClassesAndInterfaces">List of full base class or interface names.</param>
+        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
+        [NotNull]
+        IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [NotNull, ItemNotNull] IEnumerable<string> baseClassesAndInterfaces,
+            [CanBeNull] string classNamespace = null);
+
+        /// <summary>
+        ///     Adds the c# sharp file to assembly generator. Use this if <see cref="StartDynamicallyGeneratedClass(string, IEnumerable{string}, string)"/> and
+        ///     <see cref="StartDynamicallyGeneratedClass(string, string)"/> do not provide enough flexibility.
+        /// </summary>
+        /// <param name="cSharpFileContents">The c# file contents.</param>
+        //[Obsolete("This methods are not necessary anymore, since classes are added when one of overloaded StartDynamicallyGeneratedClass() methods is called. The new implementation does not anything and will be deleted in the future.")]
         void AddCSharpFile([NotNull] string cSharpFileContents);
 
         /// <summary>
@@ -71,6 +96,9 @@ namespace OROptimizer.DynamicCode
         /// </value>
         AssemblyBuildStatus BuildStatus { get; }
 
+        /// <summary>
+        /// Default namespace.
+        /// </summary>
         [NotNull]
         string DefaultNamespace { get; }
 
@@ -79,6 +107,7 @@ namespace OROptimizer.DynamicCode
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
+        [Obsolete("Classes will be finalized when the assembly is build in IDisposable.Dispose(). No need to call FinalizeDynamicallyGeneratedClass() anymore. The new implementation does not anything and will be deleted in the future.")]
         void FinalizeDynamicallyGeneratedClass(string className, [CanBeNull] string classNamespace = null);
 
         /// <summary>
@@ -93,26 +122,5 @@ namespace OROptimizer.DynamicCode
         ///     Call this method if the assembly generation should be aborted.
         /// </summary>
         void SetIsAborted();
-
-        /// <summary>
-        ///     Starts the dynamically generated class.
-        /// </summary>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
-        [NotNull]
-        IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [CanBeNull] string classNamespace = null);
-
-
-        /// <summary>
-        ///     Starts the dynamically generated class.
-        /// </summary>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="baseClassesAndInterfaces">List of full base class or interface names.</param>
-        /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
-        [NotNull]
-        IDynamicallyGeneratedClass StartDynamicallyGeneratedClass([NotNull] string className, [NotNull, ItemNotNull] IEnumerable<string> baseClassesAndInterfaces,
-                                                                  [CanBeNull] string classNamespace = null);
-
-        #endregion
     }
 }

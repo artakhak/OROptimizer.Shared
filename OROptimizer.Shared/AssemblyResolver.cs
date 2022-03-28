@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using JetBrains.Annotations;
 using OROptimizer.Diagnostics.Log;
 
@@ -36,20 +35,13 @@ namespace OROptimizer
 {
     /// <summary>
     ///     An assembly resolver class that resolves assemblies based on probing paths passed as a constructor parameter.
-    ///     Just use <see cref="AssemblyResolver.AssemblyResolver(IEnumerable{string})" /> constructor to setup assembly
-    ///     resolution.
+    ///     The method <see cref="System.IDisposable.Dispose()"/> should be called to unregister assembly resolution.
     /// </summary>
-    /// <seealso cref="System.IDisposable" />
     public class AssemblyResolver : IDisposable
     {
-        #region Member Variables
 
         [NotNull]
         private readonly IEnumerable<string> _probingPaths;
-
-        #endregion
-
-        #region  Constructors
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="AssemblyResolver" /> class. Creating an instance of this class using
@@ -65,10 +57,6 @@ namespace OROptimizer
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
         }
 
-        #endregion
-
-        #region IDisposable Interface Implementation
-
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -76,10 +64,6 @@ namespace OROptimizer
         {
             AppDomain.CurrentDomain.AssemblyResolve -= ResolveAssembly;
         }
-
-        #endregion
-
-        #region Member Functions
 
         private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
@@ -92,12 +76,10 @@ namespace OROptimizer
 
             foreach (var probingPath in _probingPaths)
                 if (new DirectoryInfo(probingPath).GetFiles().Any(fileInfo => fileInfo.Name.Equals(assemblyFileName, StringComparison.OrdinalIgnoreCase)))
-                    return AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(probingPath, assemblyFileName));
+                    return GlobalsCoreAmbientContext.Context.LoadAssembly(Path.Combine(probingPath, assemblyFileName));
 
             LogHelper.Context.Log.Error($"Failed to resolve assembly '{args.Name}'.");
             return null;
         }
-
-        #endregion
     }
 }

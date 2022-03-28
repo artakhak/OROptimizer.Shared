@@ -1,5 +1,9 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+
 // This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,27 +27,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-
-namespace OROptimizer.DynamicCode
+namespace OROptimizer
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Implementation of <see cref="ILoadedAssemblies"/> that returns all loaded assemblies.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public class AllLoadedAssemblies : ILoadedAssemblies
     {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        /// <inheritdoc />
+        public IEnumerable<Assembly> GetAssemblies()
+        {
+            var assembles = new LinkedList<Assembly>();
 
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    if (!assembly.IsDynamic)
+                        assembles.AddLast(assembly);
+                }
+                catch
+                {
+                    // Ignore. Accessing Assembly.Location might result in an exception.
+                }
+            }
+
+            return assembles;
+        }
     }
 }

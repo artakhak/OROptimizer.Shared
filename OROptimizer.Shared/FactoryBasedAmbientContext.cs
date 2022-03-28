@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,27 +23,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-
-namespace OROptimizer.DynamicCode
+namespace OROptimizer
 {
-    /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
-    /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public class FactoryBasedAmbientContext<TContext, TAmbientContextFactory> where TContext : class where TAmbientContextFactory : IAmbientContextFactory<TContext>, new()
     {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        private static TContext _context;
+        private static readonly TContext DefaultContext;
+
+        static FactoryBasedAmbientContext()
+        {
+            DefaultContext = new TAmbientContextFactory().Create();
+            SetDefaultContext();
+        }
 
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        ///     Gets or sets the context.
         /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <value>
+        ///     The context.
+        /// </value>
+        public static TContext Context
+        {
+            get => _context;
+            set
+            {
+                if (value == null)
+                    SetDefaultContext();
+                else
+                    _context = value;
+            }
+        }
+
+        /// <summary>
+        ///     Sets the default context.
+        /// </summary>
+        public static void SetDefaultContext()
+        {
+            _context = DefaultContext;
+        }
     }
 }

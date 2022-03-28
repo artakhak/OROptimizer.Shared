@@ -38,7 +38,12 @@ namespace OROptimizer
     /// </summary>
     public interface IGlobalsCore
     {
-        #region Current Type Interface
+
+        /// <summary>
+        ///     Generates the unique identifier.
+        /// </summary>
+        /// <returns></returns>
+        long GenerateUniqueId();
 
         /// <summary>
         ///     Checks the type constructor existence.
@@ -105,7 +110,6 @@ namespace OROptimizer
         /// </value>
         IDynamicAssemblyBuilder CurrentInProgressDynamicAssemblyBuilder { get; }
 
-
         /// <summary>
         ///     Logs an error and throws an exception if <paramref name="parameterValue" /> is null.
         /// </summary>
@@ -122,15 +126,9 @@ namespace OROptimizer
         string EntryAssemblyFolder { get; }
 
         /// <summary>
-        ///     Generates the unique identifier.
-        /// </summary>
-        /// <returns></returns>
-        long GenerateUniqueId();
-
-        /// <summary>
         ///     Gets all loaded assemblies.
         /// </summary>
-        /// <returns></returns>
+        [Obsolete("Use the default implementation 'OROptimizer.AllLoadedAssemblies' of 'OROptimizer.ILoadedAssemblies' instead.")]
         IEnumerable<Assembly> GetAllLoadedAssemblies();
 
         /// <summary>
@@ -165,12 +163,11 @@ namespace OROptimizer
         ///     anywhere in code to add C# files and referenced assemblies to the assembly being generated.
         ///     Example usage of this method is as follows:
         ///     <para />
-        ///     using(var assemblyBuilder = <see cref="StartDynamicAssemblyBuilder" />("c:\DynamicallyGeneratedAssembly1.dll"))
+        ///     using(var assemblyBuilder = GlobalsCoreAmbientContext.Context.StartDynamicAssemblyBuilder("c:\DynamicallyGeneratedAssembly1.dll"))
         ///     <para />
         ///     {
         ///     <para />
-        ///     assemblyBuilder.<see cref="IDynamicAssemblyBuilder.AddReferencedAssembly" />(typeof(
-        ///     <see cref="ITypeBasedSimpleSerializerAggregator" />));
+        ///     assemblyBuilder.AddReferencedAssembly(typeof(<see cref="ITypeBasedSimpleSerializerAggregator" />), ...);
         ///     <para />
         ///     assemblyBuilder.AddReferencedAssembly("MyReferencedAssembly1.dll");
         ///     <para />
@@ -178,6 +175,7 @@ namespace OROptimizer
         ///     <para />
         ///     }
         ///     <para />
+        /// 
         ///     public void AddCSharpFile1()
         ///     <para />
         ///     {
@@ -188,7 +186,7 @@ namespace OROptimizer
         ///     <para />
         ///     // generate C# file contents in cSharpFile
         ///     <para />
-        ///     // ...
+        ///     ...
         ///     <para />
         ///     assemblyBuilder.AddCSharpFile(cSharpFile);
         ///     <para />
@@ -209,12 +207,77 @@ namespace OROptimizer
         ///     assembly.
         /// </param>
         /// <returns>Returns an instance of <see cref="IDynamicAssemblyBuilder" />.</returns>
+        [Obsolete("Use StartDynamicAssemblyBuilder method with ILoadedAssemblies parameter instead")]
         IDynamicAssemblyBuilder StartDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath, [CanBeNull] OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete,
                                                             bool addAllLoadedAssembliesAsReferences,
                                                             [CanBeNull] [ItemNotNull] params string[] referencedAssemblyPaths);
 
+        /// <summary>
+        ///     Starts the dynamic assembly builder and returns an instance of <see cref="IDynamicAssemblyBuilder" />.
+        ///     Use the value of <see cref="IGlobalsCore.CurrentInProgressDynamicAssemblyBuilder" />
+        ///     anywhere in code to add C# files and referenced assemblies to the assembly being generated.
+        ///     Example usage of this method is as follows:
+        ///     <para />
+        ///     using(var assemblyBuilder = GlobalsCoreAmbientContext.Context.StartDynamicAssemblyBuilder("c:\DynamicallyGeneratedAssembly1.dll", ...))
+        ///     <para />
+        ///     {
+        ///     <para />
+        ///         assemblyBuilder.AddReferencedAssembly(typeof(<see cref="ITypeBasedSimpleSerializerAggregator" />));
+        ///     <para />
+        ///         assemblyBuilder.AddReferencedAssembly("MyReferencedAssembly1.dll");
+        ///     <para />
+        ///         AddCSharpFile1();
+        ///     <para />
+        ///     }
+        ///     <para />
+        /// 
+        ///     public void AddCSharpFile1()
+        ///     <para />
+        ///     {
+        ///     <para />
+        ///     var assemblyBuilder = <see cref="GlobalsCoreAmbientContext.Context.CurrentInProgressDynamicAssemblyBuilder" />;
+        ///     <para />
+        ///     var cSharpFile = null;
+        ///     <para />
+        ///     // generate C# file contents in cSharpFile
+        ///     <para />
+        ///     ...
+        ///     <para />
+        ///         assemblyBuilder.AddCSharpFile(cSharpFile);
+        ///     <para />
+        ///     }
+        ///     <para />
+        /// </summary>
+        /// <param name="dynamicAssemblyPath">The dynamic assembly path, where dynamically generated assembly will be saved.</param>
+        /// <param name="onDynamicAssemblyEmitComplete">
+        ///     Delegate <see cref="OnDynamicAssemblyEmitComplete" /> that will be called,
+        ///     when the dynamic assembly generation is complete.
+        /// </param>
+        /// <param name="loadedAssemblies">Instance of <see cref="ILoadedAssemblies"/> used to add add all or some of currently
+        ///                     loaded assemblies as dependencies for  dynamically generated assemblies.
+        ///                     Use an instance of <see cref="AllLoadedAssemblies"/> to add references to all assemblies loaded into current application
+        ///                     domain to the dynamically generated assembly. Use <see cref="NoLoadedAssemblies"/> to not add any additional assemblies
+        ///                     references to any additional assemblies as dependencies for dynamically generated assemblies.
+        ///                     Provide your own implementation to add only some of loaded assemblies as dependencies.
+        /// </param>
+        /// <param name="referencedAssemblyPaths">
+        ///     Assembly paths for assemblies that will be added as references to generated
+        ///     assembly.
+        /// </param>
+        /// <returns>Returns an instance of <see cref="IDynamicAssemblyBuilder" />.</returns>
+        IDynamicAssemblyBuilder StartDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath, [CanBeNull] OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete,
+                                                            [NotNull] ILoadedAssemblies loadedAssemblies,
+                                                            [CanBeNull][ItemNotNull] params string[] referencedAssemblyPaths);
+
 #pragma warning restore CS0419, CS1574
 
-        #endregion
+        /// <summary>
+        /// Loads the assembly using from file <paramref name="assemblyFilePath"/>.
+        /// </summary>
+        /// <param name="assemblyFilePath">Assembly file path.</param>
+        /// <returns>Returns the loaded assembly.</returns>
+        /// <exception cref="Exception">Throws an exception if load fails.</exception>
+        [NotNull]
+        System.Reflection.Assembly LoadAssembly([NotNull] string assemblyFilePath);
     }
 }

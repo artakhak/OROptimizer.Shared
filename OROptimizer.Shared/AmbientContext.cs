@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using JetBrains.Annotations;
 using OROptimizer.Diagnostics.Log;
 
 namespace OROptimizer
@@ -37,15 +38,9 @@ namespace OROptimizer
     public class AmbientContext<TContext, TContextDefaultImplementation> where TContext : class
         where TContextDefaultImplementation : class
     {
-        #region Member Variables
-
         private static TContext _context;
         private static readonly TContext _defaultContext;
-
-        #endregion
-
-        #region  Constructors
-
+        
         static AmbientContext()
         {
             var interfaceType = typeof(TContext);
@@ -56,7 +51,17 @@ namespace OROptimizer
                 var constructorInfo = implementationType.GetConstructor(new Type[] { });
 
                 if (constructorInfo != null && constructorInfo.IsPublic)
-                    _defaultContext = (TContext) constructorInfo.Invoke(new object[] { });
+                {
+                    try
+                    {
+                        _defaultContext = (TContext)constructorInfo.Invoke(new object[] { });
+                    }
+                    catch (Exception e)
+                    {
+                        LogHelper.Context.Log.Error($"Failed to set the default context of type '{typeof(TContext).FullName}'.", e);
+                        throw new Exception($"Failed to construct an object of type '{implementationType.FullName}' using the default constructor.");
+                    }
+                }
             }
 
             if (_defaultContext == null)
@@ -68,21 +73,19 @@ namespace OROptimizer
             SetDefaultContext();
         }
 
-        #endregion
-
-        #region Member Functions
-
         /// <summary>
         ///     Gets or sets the context.
         /// </summary>
         /// <value>
         ///     The context.
         /// </value>
+        [NotNull]
         public static TContext Context
         {
             get => _context;
             set
             {
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (value == null)
                     SetDefaultContext();
                 else
@@ -93,11 +96,10 @@ namespace OROptimizer
         /// <summary>
         ///     Sets the default context.
         /// </summary>
+        // ReSharper disable once MemberCanBePrivate.Global
         public static void SetDefaultContext()
         {
             _context = _defaultContext;
         }
-
-        #endregion
     }
 }

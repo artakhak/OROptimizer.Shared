@@ -23,13 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.Emit;
-
-namespace OROptimizer
+namespace OROptimizer.ServiceResolver
 {
-    public class Delegates
+    /// <summary>
+    /// Ambient context for accessing service resolver globally, when constructor or property dependency injection
+    /// does not work (for example in UWP or Windows forms applications when a control class should have a parameter-less constructor). 
+    /// Example of setting context is:
+    /// <see cref="ServiceResolverAmbientContext"/>.Context = new IoC.Configuration.Ninject.NinjectDiContainer(); where
+    /// "IoC.Configuration.DiContainer.IDiContainer" is in IoC.Configuration.Ninject Nuget package
+    /// </summary>
+    public class ServiceResolverAmbientContext : AmbientContext<IServiceResolver, NullServiceResolver>
     {
-        public delegate void OnDynamicAssemblyEmitComplete([NotNull] string assemblyPath, bool isSuccess, [CanBeNull] EmitResult emitResult);
+
     }
 }

@@ -1,39 +1,144 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>OROptimizer</RootNamespace>
-    <Version>2.0.0</Version>
-    <Authors>Artak Hakobyan</Authors>
-    <Company>OROptimizer</Company>
-    <Product>OROptimizer</Product>
-    <Description>A shared library used in OROptimizer as well as in some other related projects</Description>
-    <Copyright>Copyright 2018 (c) OROptimizer. All rights reserved.</Copyright>
-    <PackageTags>OROptimizer Log dynamic code</PackageTags>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
-    <PackageLicenseUrl>https://opensource.org/licenses/mit-license.php</PackageLicenseUrl>
-    <PackageReleaseNotes>Some changes to support  IoC.Configuration 2.0. Should not be used with IoC.Configuration 1.x.x since this version was not tested with version earlier than IoC.Configuration 2.0 . Use OROptimizer.Shared 1.0.0 with earlier versions of IoC.Configuration.</PackageReleaseNotes>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<RootNamespace>OROptimizer</RootNamespace>
+		<Version>2.0.2</Version>
+		<Authors>Artak Hakobyan</Authors>
+		<Company>OROptimizer</Company>
+		<Product>OROptimizer</Product>
+		<Description>A shared library used in OROptimizer as well as in some other related projects</Description>
+		<Copyright>Copyright 2018 (c) OROptimizer. All rights reserved.</Copyright>
+		<PackageTags>OROptimizer Log dynamic code</PackageTags>
+		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
+		<PackageLicenseUrl>https://opensource.org/licenses/mit-license.php</PackageLicenseUrl>
+		<PackageReleaseNotes>
+			1) -Made the following improvements to interfaces OROptimizer.DynamicCode.IDynamicAssemblyBuilder and OROptimizer.DynamicCode.IDynamicallyGeneratedClass as follows:
+			   - Deprecated the method FinalizeDynamicallyGeneratedClass() in OROptimizer.DynamicCode.IDynamicAssemblyBuilder. No need to call this method anymore, since classes will be finalized when the assembly is built in IDisposable.Dispose().
+			   - Deprecated the method AddUsingNamespaceStatment in OROptimizer.DynamicCode.IDynamicallyGeneratedClass (replaced with method AddUsingNamespaceStatement() with fixed typo).
+			   - Deprecated the method FinalizeAndAddToAssembly() in OROptimizer.DynamicCode.IDynamicallyGeneratedClass. No need to explicitly add the class to assembly builder improvements to interfaces OROptimizer.DynamicCode.IDynamicAssemblyBuilder, since the class is added when method StartDynamicallyGeneratedClass() in OROptimizer.DynamicCode.IDynamicAssemblyBuilder is executed.
+			   - Added method "string GenerateCSharpFile()" to OROptimizer.DynamicCode.IDynamicallyGeneratedClass.
+			   - Added an oveloaded method OROptimizer.GlobalsCore.StartDynamicAssemblyBuilder() which instead of adding all currently loaded assemblies as references to dynamically generated assembly (as the old deprecated method still does) uses an instance if interface OROptimizer.ILoadedAssemblies as a parameter to determine which 
+			assemblies should be added as references. The default implementation OROptimizer.AllLoadedAssemblies returns all loaded assemblies in method OROptimizer.ILoadedAssemblies.GetAssemblies().
+			2) Added a new interface OROptimizer.ServiceResolver.IDiBasedObjectFactory and its default implementation OROptimizer.ServiceResolver.DiBasedObjectFactory for creating instance of types while injecting constructor parameters using dependency injection. OROptimizer.ServiceResolver.ServiceResolverAmbientContext.Context.Resolve() is used to inject the values of constructor parameters.
+			3) Added new helper classes for relative path calculation, XML element selection and modifications, etc under namespaces OROptimizer.Utilities, ROptimizer.Diagnostics, as well as some other small improvements.
+		</PackageReleaseNotes>
+		<EnableDefaultItems>false</EnableDefaultItems>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;DYNAMIC_CODE_DIAGNOSTICS_TYPE_1;NETSTANDARD2_0</DefineConstants>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>bin\Debug\netstandard2.0\OROptimizer.Shared.xml</DocumentationFile>
-    <NoWarn>1701;1702;1705;1591;</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;DYNAMIC_CODE_DIAGNOSTICS_TYPE_1;</DefineConstants>
+		<OutputPath>bin\Debug\</OutputPath>
+		<DocumentationFile></DocumentationFile>
+		<NoWarn>1701;1702;1705;1591;</NoWarn>
+		<Optimize>False</Optimize>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>bin\Release\netstandard2.0\OROptimizer.Shared.xml</DocumentationFile>
-    <NoWarn>1701;1702;1705;1591;</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputPath>bin\Release\</OutputPath>
+		<DocumentationFile>bin\Release\netstandard2.0\OROptimizer.Shared.xml</DocumentationFile>
+		<NoWarn>1701;1702;1705;1591;</NoWarn>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="10.2.1" />
-    <PackageReference Include="log4net" Version="2.0.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.3.2" />
-    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-  </ItemGroup>
+	<ItemGroup>
+	  <Compile Include="AmbientContext.cs" />
+	  <Compile Include="AssemblyResolver.cs" />
+	  <Compile Include="Delegates.cs" />
+	  <Compile Include="Diagnostics\CreateObjectInfoDelegate.cs" />
+	  <Compile Include="Diagnostics\IObjectsCache.cs" />
+	  <Compile Include="Diagnostics\Log\ILog.cs" />
+	  <Compile Include="Diagnostics\Log\ILogHelperContext.cs" />
+	  <Compile Include="Diagnostics\Log\Log4NetHelperContext.cs" />
+	  <Compile Include="Diagnostics\Log\Log4NetLog.cs" />
+	  <Compile Include="Diagnostics\Log\LoggerWasNotInitializedException.cs" />
+	  <Compile Include="Diagnostics\Log\LogHelper.cs" />
+	  <Compile Include="Diagnostics\Log\LogHelperContextAbstr.cs" />
+	  <Compile Include="Diagnostics\Log\NullLog.cs" />
+	  <Compile Include="Diagnostics\Log\NullLogHelperContext.cs" />
+	  <Compile Include="Diagnostics\ObjectInfo.cs" />
+	  <Compile Include="Diagnostics\ObjectsCache.cs" />
+	  <Compile Include="Diagnostics\ObjectsCacheDefault.cs" />
+	  <Compile Include="DynamicCode\AccessLevel.cs" />
+	  <Compile Include="DynamicCode\AssemblyBuildStatus.cs" />
+	  <Compile Include="DynamicCode\DynamicallyGeneratedClass.cs" />
+	  <Compile Include="DynamicCode\DynamicallyGeneratedConstructorData.cs" />
+	  <Compile Include="DynamicCode\DynamicallyGeneratedFunctionData.cs" />
+	  <Compile Include="DynamicCode\DynamicallyGeneratedMethodData.cs" />
+	  <Compile Include="DynamicCode\DynamicAssemblyBuilder.cs" />
+	  <Compile Include="DynamicCode\DynamicAssemblyBuilderFactory.cs" />
+	  <Compile Include="DynamicCode\DynamicCodeGenerationException.cs" />
+	  <Compile Include="DynamicCode\GeneratedTypeInfo.cs" />
+	  <Compile Include="DynamicCode\IDynamicallyGeneratedClass.cs" />
+	  <Compile Include="DynamicCode\IDynamicallyGeneratedConstructorData.cs" />
+	  <Compile Include="DynamicCode\IDynamicallyGeneratedFunctionData.cs" />
+	  <Compile Include="DynamicCode\IDynamicallyGeneratedMethodData.cs" />
+	  <Compile Include="DynamicCode\IDynamicAssemblyBuilder.cs" />
+	  <Compile Include="DynamicCode\IDynamicAssemblyBuilderFactory.cs" />
+	  <Compile Include="DynamicCode\IGeneratedTypeInfo.cs" />
+	  <Compile Include="DynamicCode\IMethodParameterInfo.cs" />
+	  <Compile Include="DynamicCode\IParameterInfo.cs" />
+	  <Compile Include="DynamicCode\MethodParameterInfo.cs" />
+	  <Compile Include="DynamicCode\MethodParameterType.cs" />
+	  <Compile Include="DynamicCode\ParameterInfo.cs" />
+	  <Compile Include="FactoryBasedAmbientContext.cs" />
+	  <Compile Include="GlobalsCore.cs" />
+	  <Compile Include="GlobalsCoreAmbientContext.cs" />
+	  <Compile Include="IAmbientContextFactory.cs" />
+	  <Compile Include="IGenericTreeItem.cs" />
+	  <Compile Include="IGlobalsCore.cs" />
+	  <Compile Include="ILoadedAssemblies.cs" />
+	  <Compile Include="AllLoadedAssemblies.cs" />
+	  <Compile Include="NoLoadedAssemblies.cs" />
+	  <Compile Include="ParameterInfo.cs" />
+	  <Compile Include="Serializer\ITypeBasedSimpleSerializer.cs" />
+	  <Compile Include="Serializer\ITypeBasedSimpleSerializerAggregator.cs" />
+	  <Compile Include="Serializer\IValueToCSharpCodeConverter.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerAbstr.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerAggregator.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerAssembly.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerBoolean.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerByte.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerDateTime.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerDouble.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerGuid.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerInt.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerLong.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerShort.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerString.cs" />
+	  <Compile Include="Serializer\TypeBasedSimpleSerializerType.cs" />
+	  <Compile Include="ServiceResolver\DiBasedObjectFactory.cs" />
+	  <Compile Include="ServiceResolver\DiBasedObjectFactoryAmbientContext.cs" />
+	  <Compile Include="ServiceResolver\IDiBasedObjectFactory.cs" />
+	  <Compile Include="ServiceResolver\IServiceResolver.cs" />
+	  <Compile Include="ServiceResolver\NullServiceResolver.cs" />
+	  <Compile Include="ServiceResolver\ServiceResolverAmbientContext.cs" />
+	  <Compile Include="ServiceResolver\TryResolveConstructorParameterValueDelegate.cs" />
+	  <Compile Include="TypeExtensionMethods.cs" />
+	  <Compile Include="Utilities\ActionBasedDisposable.cs" />
+	  <Compile Include="Utilities\EnumExtensions.cs" />
+	  <Compile Include="Utilities\FilePathHelpers.cs" />
+	  <Compile Include="Utilities\TreeProcessor.cs" />
+	  <Compile Include="Utilities\Xml\XmlDocumentExtensions.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="OROptimizer.Shared.licenseheader" />
+	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="JetBrains.Annotations" Version="2021.2.0" PrivateAssets="all" ExcludeAssets="runtime">
+		  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="log4net" Version=" 2.0.12" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="2.3.2" />
+		<PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+	</ItemGroup>
 
 </Project>

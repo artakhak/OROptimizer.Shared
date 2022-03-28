@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -24,26 +24,30 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using JetBrains.Annotations;
+using System;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Utilities
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Executes a delegate passed in constructor parameter when <see cref="IDisposable.Dispose()"/> is executed.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public sealed class ActionBasedDisposable : IDisposable
     {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        [NotNull] private readonly Action _disposeAction;
 
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Constructor.
         /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <param name="disposeAction">A Delegate to execute when <see cref="ActionBasedDisposable"/> is disposed.</param>
+        public ActionBasedDisposable([NotNull] Action disposeAction)
+        {
+            _disposeAction = disposeAction;
+        }
+        
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _disposeAction();
+        }
     }
 }

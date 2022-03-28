@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,27 +23,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
+using System.Reflection;
 using JetBrains.Annotations;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Returns list of assemblies. The implementation might chose to skip some assemblies.
+    /// Default implementations <see cref="AllLoadedAssemblies"/> or <see cref="NoLoadedAssemblies"/> can be used in most cases.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public interface ILoadedAssemblies
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Returns currently loaded assemblies. The implementation might chose to skip some assemblies.
+        /// Default implementations <see cref="AllLoadedAssemblies"/> or <see cref="NoLoadedAssemblies"/> can be used in most cases.
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
-
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <returns></returns>
+        [NotNull, ItemNotNull]
+        IEnumerable<Assembly> GetAssemblies();
     }
 }

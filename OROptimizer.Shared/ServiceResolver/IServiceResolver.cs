@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -24,26 +24,35 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using JetBrains.Annotations;
+using System;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.ServiceResolver
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Service resolver.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
+    public interface IServiceResolver
     {
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Resolves an instance of type <typeparamref name="T"/> from DI container. 
         /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
+        /// <typeparam name="T">Service type.</typeparam>
+        /// <exception cref="Exception">Throws an exception if type resolution fails.</exception>
+        [NotNull]
+        T Resolve<T>() where T: class;
 
         /// <summary>
-        ///     Creates the dynamic assembly builder.
+        /// Resolves an instance of type <paramref name="type"/> from DI container. 
         /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
+        /// <param name="type">Service type.</param>
+        /// <exception cref="Exception">Throws an exception if type resolution fails.</exception>
+        [NotNull]
+        object Resolve([NotNull] Type type);
     }
+
+    //public interface IServiceRegister : IServiceResolver
+    //{
+    //    void RegisterService<TService, TImplementation>([NotNull] Func<TImplementation> getImplementation);
+    //    void RegisterSelfBoundService<TService>([NotNull] Func<TService> getImplementation);
+    //}
 }

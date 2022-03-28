@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright � 2018 IoC.Configuration Contributors
+﻿// This software is part of the IoC.Configuration library
+// Copyright © 2018 IoC.Configuration Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -25,25 +25,13 @@
 
 using JetBrains.Annotations;
 
-namespace OROptimizer.DynamicCode
+namespace OROptimizer.Diagnostics
 {
     /// <summary>
-    ///     A factory for <see cref="IDynamicAssemblyBuilder" />
+    /// Creates a wrapper of type <typeparamref name="TObjectInfo"/> for an object in parameter. <typeparamref name="TObjectInfo"/> should be of type <see cref="ObjectInfo"/>.
     /// </summary>
-    public interface IDynamicAssemblyBuilderFactory
-    {
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
-        /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                                             [CanBeNull] Delegates.OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete);
-
-        /// <summary>
-        ///     Creates the dynamic assembly builder.
-        /// </summary>
-        /// <param name="dynamicAssemblyBuilderParameters">Dynamic assembly builder parameters.</param>
-        IDynamicAssemblyBuilder CreateDynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters);
-    }
+    /// <typeparam name="TObjectInfo">Type parameter.</typeparam>
+    /// <param name="obj">Object for which to create the wrapper.</param>
+    /// <param name="objectId">Object Id.</param>
+    public delegate TObjectInfo CreateObjectInfoDelegate<out TObjectInfo>([NotNull] object obj, long objectId) where TObjectInfo : ObjectInfo;
 }

@@ -39,62 +39,32 @@ namespace OROptimizer.DynamicCode
     ///     Dynamic assembly generator for C# files.
     ///     Example:
     ///     <para />
-    ///     using(var assemblyGenerator = new DynamicAssemblyBuilder("c:\Assembly1.dll", null))
+    ///     using(var assemblyBuilder = new DynamicAssemblyBuilder("c:\Assembly1.dll", null))
     ///     {
-    ///     assemblyGenerator.AddReferencedAssembly("c:\Assembly1.dll");
+    ///     assemblyBuilder.AddReferencedAssembly("c:\Assembly1.dll");
     ///     var cSharpFileContents = "C# file contents go here";
-    ///     assemblyGenerator.AddCSharpFile(cSharpFileContents);
+    ///     assemblyBuilder.AddCSharpFile(cSharpFileContents);
     ///     }
     /// </summary>
     /// <seealso cref="OROptimizer.DynamicCode.IDynamicAssemblyBuilder" />
     public class DynamicAssemblyBuilder : IDynamicAssemblyBuilder
     {
-        #region Member Variables
+        [NotNull] 
+        private readonly DynamicAssemblyBuilderParameters _dynamicAssemblyBuilderParameters;
 
+        [NotNull]
         private readonly Dictionary<string, IDynamicallyGeneratedClass> _classFullNameToDynamicallyGeneratedClass = new Dictionary<string, IDynamicallyGeneratedClass>(StringComparer.Ordinal);
 
-        [NotNull]
+        [NotNull, ItemNotNull]
         private readonly List<string> _csharpFiles = new List<string>();
-
-
-        [NotNull]
-        private readonly string _dynamicAssemblyPath;
-
-        [NotNull]
-        private static object _lockObject = new object();
-
-        [CanBeNull]
-        private readonly OnDynamicAssemblyEmitComplete _onDynamicAssemblyEmitComplete;
 
         [NotNull]
         private readonly Dictionary<string, string> _referencedAssemblyNameToPathMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        #endregion
+        private bool _isDisposed;
 
-        #region  Constructors
-
-        //static DynamicAssemblyBuilder()
-        //{
-        //    //var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-        //    var settingValue = ConfigurationSettings.AppSettings.Get(nameof(SaveCSharpFiles));
-
-        //    if (settingValue != null && bool.TryParse(settingValue, out SaveCSharpFiles) && SaveCSharpFiles)
-        //    {
-        //        SavedCSharpFilesFolder = ConfigurationSettings.AppSettings.Get(nameof(SavedCSharpFilesFolder));
-
-        //        if (SavedCSharpFilesFolder != null)
-        //        {
-        //            if (!Directory.Exists(SavedCSharpFilesFolder))
-        //            {
-        //                LogHelper.Context.Log.WarnFormat("Folder '{0}' specified in settin '{1}' was not found.",
-        //                    SavedCSharpFilesFolder, nameof(SavedCSharpFilesFolder));
-
-        //                SavedCSharpFilesFolder = null;
-        //            }
-        //        }
-        //    }
-        //}  
+        [NotNull]
+        private readonly object _lockObject = new object();
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DynamicAssemblyBuilder" /> class.
@@ -102,18 +72,24 @@ namespace OROptimizer.DynamicCode
         /// <param name="dynamicAssemblyPath">The dynamic assembly path.</param>
         /// <param name="onDynamicAssemblyEmitComplete">The on dynamic assembly emit complete.</param>
         public DynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath,
-                                      [CanBeNull] OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete)
+                                      [CanBeNull] OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete) : 
+            this(new DynamicAssemblyBuilderParameters(dynamicAssemblyPath)
+            {
+                OnDynamicAssemblyEmitComplete = onDynamicAssemblyEmitComplete
+            })
         {
-            LogHelper.Context.Log.InfoFormat("Started compiling dynamic assembly '{0}'.", dynamicAssemblyPath);
+        }
 
-            _dynamicAssemblyPath = dynamicAssemblyPath;
-            _onDynamicAssemblyEmitComplete = onDynamicAssemblyEmitComplete;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DynamicAssemblyBuilder" /> class using instance of <see cref="DynamicAssemblyBuilderParameters"/> as a constructor parameter.
+        /// </summary>
+        /// <param name="dynamicAssemblyBuilderParameters"></param>
+        public DynamicAssemblyBuilder([NotNull] DynamicAssemblyBuilderParameters dynamicAssemblyBuilderParameters)
+        {
+            _dynamicAssemblyBuilderParameters = dynamicAssemblyBuilderParameters;
+            LogHelper.Context.Log.InfoFormat("Started compiling dynamic assembly '{0}'.", _dynamicAssemblyBuilderParameters.DynamicAssemblyPath);
 
-            // Add common .Net assemblies
-            var dotNetDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location);
             AddReferencedAssembly(typeof(object));
-            AddReferencedAssembly(Path.Combine(dotNetDirectory, "System.Runtime.dll"));
-            AddReferencedAssembly(Path.Combine(dotNetDirectory, "netstandard.dll"));
         }
 
         /// <summary>
@@ -127,159 +103,6 @@ namespace OROptimizer.DynamicCode
                                       [NotNull] string defaultNameSpace) : this(dynamicAssemblyPath, onDynamicAssemblyEmitComplete)
         {
             DefaultNamespace = defaultNameSpace;
-        }
-
-        #endregion
-
-        #region IDynamicAssemblyBuilder Interface Implementation
-
-        /// <summary>
-        ///     Adds the c# sharp file to assembly generator.
-        /// </summary>
-        /// <param name="cSharpFileContents">The c sharp file contents.</param>
-        public void AddCSharpFile(string cSharpFileContents)
-        {
-#if DEBUG
-#if DYNAMIC_CODE_DIAGNOSTICS_TYPE_1
-            try
-            {
-                // Save the file in debug mode for testing purposes
-
-                var cSharpFilesFolder = Path.Combine(Path.GetDirectoryName(_dynamicAssemblyPath), "CSharpFiles");
-
-                if (!Directory.Exists(cSharpFilesFolder))
-                    Directory.CreateDirectory(cSharpFilesFolder);
-
-                using (var streamWriter = new StreamWriter(Path.Combine(cSharpFilesFolder, $"DynamicFile_{_csharpFiles.Count}.cs")))
-                {
-                    streamWriter.Write(cSharpFileContents);
-                }
-            }
-            catch (Exception e)
-            {
-                LogHelper.Context.Log.Error("Failed to save the generated C# file in diagnostics mode.", e);
-            }
-#endif
-#endif
-            _csharpFiles.Add(cSharpFileContents);
-        }
-
-        /// <summary>
-        ///     Adds a reference to assembly <paramref name="type" />.Assembly in the generated dynamic assembly.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        public void AddReferencedAssembly(Type type)
-        {
-            AddReferencedAssembly(type.Assembly.GetName().Name, type.Assembly.Location);
-        }
-
-        /// <summary>
-        ///     Adds a reference to assembly <paramref name="assemblyPath" /> in the generated dynamic assembly.
-        /// </summary>
-        /// <param name="assemblyPath">The assembly path.</param>
-        public void AddReferencedAssembly(string assemblyPath)
-        {
-            AddReferencedAssembly(Path.GetFileNameWithoutExtension(assemblyPath), assemblyPath);
-        }
-
-        /// <summary>
-        ///     Gets the build status.
-        /// </summary>
-        /// <value>
-        ///     The build status.
-        /// </value>
-        public AssemblyBuildStatus BuildStatus { get; private set; } = AssemblyBuildStatus.Started;
-
-        [NotNull]
-        public string DefaultNamespace { get; } = $"DynamicImplementations_{GlobalsCoreAmbientContext.Context.GenerateUniqueId()}";
-
-        /// <summary>
-        ///     Call this method to finalize the assembly generation.
-        /// </summary>
-        public void Dispose()
-        {
-            EmitResult compilationResult = null;
-            if (BuildStatus == AssemblyBuildStatus.Started)
-            {
-                var referencedAssembliesMetadata = new List<MetadataReference>();
-
-                foreach (var assemblyPath in _referencedAssemblyNameToPathMap.Values)
-                    referencedAssembliesMetadata.Add(MetadataReference.CreateFromFile(assemblyPath));
-
-                var syntaxTrees = new List<SyntaxTree>();
-
-                foreach (var cSharpFile in _csharpFiles)
-                    syntaxTrees.Add(SyntaxFactory.ParseSyntaxTree(cSharpFile));
-
-                var csharpCompilation = CSharpCompilation.Create(Path.GetFileName(_dynamicAssemblyPath),
-                    syntaxTrees, referencedAssembliesMetadata, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-                string pdbPath = null;
-
-#if DEBUG
-                pdbPath = Path.Combine(Path.GetDirectoryName(_dynamicAssemblyPath), $"{Path.GetFileNameWithoutExtension(_dynamicAssemblyPath)}.pdb");
-#endif
-                compilationResult = csharpCompilation.Emit(_dynamicAssemblyPath, pdbPath);
-            }
-
-            if (compilationResult != null && compilationResult.Success)
-            {
-                BuildStatus = AssemblyBuildStatus.Succeeded;
-                LogHelper.Context.Log.InfoFormat("Successfully compiled dynamic assembly '{0}'.", _dynamicAssemblyPath);
-            }
-            else
-            {
-                BuildStatus = AssemblyBuildStatus.Failed;
-                LogHelper.Context.Log.ErrorFormat("Compilation of dynamic assembly '{0}' failed.", _dynamicAssemblyPath);
-
-                if (compilationResult != null)
-                {
-                    var diagnosticsCount = Math.Min(compilationResult.Diagnostics.Length, 100);
-                    for (var i = 0; i < diagnosticsCount; ++i)
-                    {
-                        var diagnostic = compilationResult.Diagnostics[i];
-                        if (diagnostic.Severity == DiagnosticSeverity.Error)
-                            LogHelper.Context.Log.Error(diagnostic.ToString());
-                    }
-                }
-            }
-
-            _onDynamicAssemblyEmitComplete?.Invoke(_dynamicAssemblyPath, compilationResult?.Success ?? false, compilationResult);
-        }
-
-        /// <inheritdoc />
-        public void FinalizeDynamicallyGeneratedClass(string className, string classNamespace)
-        {
-            var dynamicallyGeneratedClass = GetDynamicallyGeneratedClass(className, classNamespace);
-
-            if (dynamicallyGeneratedClass == null)
-            {
-                LogHelper.Context.Log.Error($"Class '{GetClassFullName(className, classNamespace)}' was never started.");
-                return;
-            }
-
-            if (dynamicallyGeneratedClass.IsFinalized)
-            {
-                LogHelper.Context.Log.Error($"Class '{GetClassFullName(className, classNamespace)}' was already finalized.");
-                return;
-            }
-
-            dynamicallyGeneratedClass.FinalizeAndAddToAssembly();
-        }
-
-        /// <inheritdoc />
-        public IDynamicallyGeneratedClass GetDynamicallyGeneratedClass(string className, string classNamespace = null)
-        {
-            return _classFullNameToDynamicallyGeneratedClass.TryGetValue(
-                GetClassFullName(className, classNamespace), out var dynamicallyGeneratedClass)
-                ? dynamicallyGeneratedClass
-                : null;
-        }
-
-        /// <inheritdoc />
-        public void SetIsAborted()
-        {
-            BuildStatus = AssemblyBuildStatus.Aborted;
         }
 
         /// <inheritdoc />
@@ -302,20 +125,175 @@ namespace OROptimizer.DynamicCode
                 return dynamicallyGeneratedClass;
             }
 
-            dynamicallyGeneratedClass = new DynamicallyGeneratedClass(this, className, classNamespace, baseClassesAndInterfaces);
+            dynamicallyGeneratedClass = new DynamicallyGeneratedClass(className, classNamespace, baseClassesAndInterfaces);
             _classFullNameToDynamicallyGeneratedClass[classFullName] = dynamicallyGeneratedClass;
 
             return dynamicallyGeneratedClass;
         }
 
-        #endregion
+        /// <inheritdoc />
+        public void AddCSharpFile(string cSharpFileContents)
+        {
+            _csharpFiles.Add(cSharpFileContents);
+        }
 
-        #region Member Functions
+        /// <inheritdoc />
+        public void AddReferencedAssembly(Type type)
+        {
+            AddReferencedAssembly(type.Assembly.GetName().Name, type.Assembly.Location);
+        }
+
+        /// <inheritdoc />
+        public void AddReferencedAssembly(string assemblyPath)
+        {
+            AddReferencedAssembly(Path.GetFileNameWithoutExtension(assemblyPath), assemblyPath);
+        }
+
+        /// <inheritdoc />
+        public AssemblyBuildStatus BuildStatus { get; private set; } = AssemblyBuildStatus.Started;
+
+        /// <inheritdoc />
+        public string DefaultNamespace { get; } = $"DynamicImplementations_{GlobalsCoreAmbientContext.Context.GenerateUniqueId()}";
+
+        private IReadOnlyList<string> GetAllCSharpFiles()
+        {
+            List<string> cSharpFiles = new List<string>(_csharpFiles.Count + 100);
+            cSharpFiles.AddRange(_csharpFiles);
+
+            foreach (var dynamicallyGeneratedClass in _classFullNameToDynamicallyGeneratedClass.Values)
+                cSharpFiles.Add(dynamicallyGeneratedClass.GenerateCSharpFile());
+
+#if DEBUG
+#if DYNAMIC_CODE_DIAGNOSTICS_TYPE_1
+            foreach (var cSharpFileContents in cSharpFiles)
+            {
+                try
+                {
+                    // Save the file in debug mode for testing purposes
+
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    var cSharpFilesFolder = Path.Combine(Path.GetDirectoryName(_dynamicAssemblyBuilderParameters.DynamicAssemblyPath), "CSharpFiles");
+
+                    if (!Directory.Exists(cSharpFilesFolder))
+                        Directory.CreateDirectory(cSharpFilesFolder);
+
+                    using (var streamWriter = new StreamWriter(Path.Combine(cSharpFilesFolder, $"DynamicFile_{cSharpFiles.Count}.cs")))
+                    {
+                        streamWriter.Write(cSharpFileContents);
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogHelper.Context.Log.Error("Failed to save the generated C# file in diagnostics mode.", e);
+                }
+            }
+#endif
+#endif
+            return cSharpFiles;
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            lock (_lockObject)
+            {
+                if (_isDisposed)
+                    return;
+
+                _isDisposed = true;
+            }
+
+            if (!isDisposing)
+                return;
+
+            // Dispose of managed resources here.
+            
+            EmitResult emitResult = null;
+            try
+            {
+                
+                if (BuildStatus == AssemblyBuildStatus.Started)
+                {
+                    var referencedAssembliesMetadata = new List<MetadataReference>();
+
+                    foreach (var assemblyPath in _referencedAssemblyNameToPathMap.Values)
+                        referencedAssembliesMetadata.Add(MetadataReference.CreateFromFile(assemblyPath));
+
+                    var syntaxTrees = new List<SyntaxTree>();
+
+                    var cSharpFiles = GetAllCSharpFiles();
+
+                    foreach (var cSharpFile in cSharpFiles)
+                        syntaxTrees.Add(SyntaxFactory.ParseSyntaxTree(cSharpFile));
+
+                    var csharpCompilation = CSharpCompilation.Create(Path.GetFileName(_dynamicAssemblyBuilderParameters.DynamicAssemblyPath),
+                        syntaxTrees, referencedAssembliesMetadata, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                    string pdbPath = null;
+
+#if DEBUG
+                    //pdbPath = Path.Combine(Path.GetDirectoryName(_dynamicAssemblyPath), $"{Path.GetFileNameWithoutExtension(_dynamicAssemblyPath)}.pdb");
+#endif
+                    emitResult = csharpCompilation.Emit(_dynamicAssemblyBuilderParameters.DynamicAssemblyPath, pdbPath);
+                }
+            }
+            catch (Exception e)
+            {
+                LogHelper.Context.Log.Error($"Failed to build an assembly {_dynamicAssemblyBuilderParameters.DynamicAssemblyPath}.", e);
+            }
+            finally
+            {
+                if (emitResult != null && emitResult.Success)
+                {
+                    BuildStatus = AssemblyBuildStatus.Succeeded;
+                    LogHelper.Context.Log.InfoFormat("Successfully compiled dynamic assembly '{0}'.", _dynamicAssemblyBuilderParameters.DynamicAssemblyPath);
+                }
+                else
+                {
+                    LogHelper.Context.Log.Error($"Failed to build an assembly {_dynamicAssemblyBuilderParameters.DynamicAssemblyPath}.");
+                }
+
+                _dynamicAssemblyBuilderParameters.OnDynamicAssemblyEmitComplete?.Invoke(_dynamicAssemblyBuilderParameters.DynamicAssemblyPath, emitResult?.Success??false, emitResult);
+            }
+        }
+
+        /// <summary>
+        ///     Call this method to finalize the assembly generation.
+        /// </summary>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        [Obsolete]
+        public void FinalizeDynamicallyGeneratedClass(string className, string classNamespace)
+        {
+            LogHelper.Context.Log.ErrorFormat("Method {0} was deprecated.", nameof(FinalizeDynamicallyGeneratedClass));
+        }
+
+        /// <inheritdoc />
+        public IDynamicallyGeneratedClass GetDynamicallyGeneratedClass(string className, string classNamespace = null)
+        {
+            return _classFullNameToDynamicallyGeneratedClass.TryGetValue(
+                GetClassFullName(className, classNamespace), out var dynamicallyGeneratedClass) ? dynamicallyGeneratedClass : null;
+        }
+
+        /// <inheritdoc />
+        public void SetIsAborted()
+        {
+            BuildStatus = AssemblyBuildStatus.Aborted;
+        }
 
         private void AddReferencedAssembly(string assemblyName, string assemblyPath)
         {
-            if (_referencedAssemblyNameToPathMap.ContainsKey(assemblyName))
+            if (_referencedAssemblyNameToPathMap.TryGetValue(assemblyName, out var previouslyAddedAssemblyPath))
+            {
+                if (!string.Equals(previouslyAddedAssemblyPath, assemblyPath, StringComparison.OrdinalIgnoreCase))
+                    LogHelper.Context.Log.WarnFormat("Assembly '{0}' will not be added as a reference, since it was already added as a reference to assembly '{1}' from '{2}'.",
+                        assemblyPath, _dynamicAssemblyBuilderParameters.DynamicAssemblyPath, previouslyAddedAssemblyPath);
+                
                 return;
+            }
 
             _referencedAssemblyNameToPathMap[assemblyName] = assemblyPath;
         }
@@ -327,7 +305,33 @@ namespace OROptimizer.DynamicCode
 
             return $"{classNamespace}.{className}";
         }
+    }
 
-        #endregion
+    /// <summary>
+    /// Parameters for <see cref="DynamicAssemblyBuilder"/>.
+    /// </summary>
+    public sealed class DynamicAssemblyBuilderParameters
+    {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="dynamicAssemblyPath">The file path of generated assembly.</param>
+        public DynamicAssemblyBuilderParameters([NotNull] string dynamicAssemblyPath)
+        {
+            DynamicAssemblyPath = dynamicAssemblyPath;
+        }
+
+        /// <summary>
+        /// The file path of generated assembly.
+        /// </summary>
+        [NotNull]
+        public string DynamicAssemblyPath { get; }
+
+        /// <summary>
+        /// A delegate that will be executed when the assembly generation is complete.
+        /// Use this method to log compilation error details in <see cref="EmitResult.Diagnostics"/> if necessary.
+        /// </summary>
+        [CanBeNull]
+        public OnDynamicAssemblyEmitComplete OnDynamicAssemblyEmitComplete { get; set; }
     }
 }
