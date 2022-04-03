@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.1.0</PackageVersion>
+		<PackageVersion>2.1.1</PackageVersion>
 		<Version></Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
@@ -14,15 +14,7 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			1) -Made the following improvements to interfaces OROptimizer.DynamicCode.IDynamicAssemblyBuilder and OROptimizer.DynamicCode.IDynamicallyGeneratedClass as follows:
-			   - Deprecated the method FinalizeDynamicallyGeneratedClass() in OROptimizer.DynamicCode.IDynamicAssemblyBuilder. No need to call this method anymore, since classes will be finalized when the assembly is built in IDisposable.Dispose().
-			   - Deprecated the method AddUsingNamespaceStatment in OROptimizer.DynamicCode.IDynamicallyGeneratedClass (replaced with method AddUsingNamespaceStatement() with fixed typo).
-			   - Deprecated the method FinalizeAndAddToAssembly() in OROptimizer.DynamicCode.IDynamicallyGeneratedClass. No need to explicitly add the class to assembly builder improvements to interfaces OROptimizer.DynamicCode.IDynamicAssemblyBuilder, since the class is added when method StartDynamicallyGeneratedClass() in OROptimizer.DynamicCode.IDynamicAssemblyBuilder is executed.
-			   - Added method "string GenerateCSharpFile()" to OROptimizer.DynamicCode.IDynamicallyGeneratedClass.
-			   - Added an oveloaded method OROptimizer.GlobalsCore.StartDynamicAssemblyBuilder() which instead of adding all currently loaded assemblies as references to dynamically generated assembly (as the old deprecated method still does) uses an instance if interface OROptimizer.ILoadedAssemblies as a parameter to determine which 
-			assemblies should be added as references. The default implementation OROptimizer.AllLoadedAssemblies returns all loaded assemblies in method OROptimizer.ILoadedAssemblies.GetAssemblies().
-			2) Added a new interface OROptimizer.ServiceResolver.IDiBasedObjectFactory and its default implementation OROptimizer.ServiceResolver.DiBasedObjectFactory for creating instance of types while injecting constructor parameters using dependency injection. OROptimizer.ServiceResolver.ServiceResolverAmbientContext.Context.Resolve() is used to inject the values of constructor parameters.
-			3) Added new helper classes for relative path calculation, XML element selection and modifications, etc under namespaces OROptimizer.Utilities, ROptimizer.Diagnostics, as well as some other small improvements.
+			Small fix in method OROptimizer.Utilities.FilePathHelpers.TryGetAbsoluteFilePath(...)
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
