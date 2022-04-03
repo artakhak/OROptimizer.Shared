@@ -128,7 +128,7 @@ namespace OROptimizer
         /// <summary>
         ///     Gets all loaded assemblies.
         /// </summary>
-        [Obsolete("Use the default implementation 'OROptimizer.AllLoadedAssemblies' of 'OROptimizer.ILoadedAssemblies' instead.")]
+        [Obsolete("Will be removed after 05/31/2023. Use the default implementation 'OROptimizer.AllLoadedAssemblies' of 'OROptimizer.ILoadedAssemblies' instead.")]
         IEnumerable<Assembly> GetAllLoadedAssemblies();
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace OROptimizer
         ///     assembly.
         /// </param>
         /// <returns>Returns an instance of <see cref="IDynamicAssemblyBuilder" />.</returns>
-        [Obsolete("Use StartDynamicAssemblyBuilder method with ILoadedAssemblies parameter instead")]
+        [Obsolete("Will be removed after 05/31/2023. Use StartDynamicAssemblyBuilder method with ILoadedAssemblies parameter instead")]
         IDynamicAssemblyBuilder StartDynamicAssemblyBuilder([NotNull] string dynamicAssemblyPath, [CanBeNull] OnDynamicAssemblyEmitComplete onDynamicAssemblyEmitComplete,
                                                             bool addAllLoadedAssembliesAsReferences,
                                                             [CanBeNull] [ItemNotNull] params string[] referencedAssemblyPaths);

@@ -265,7 +265,7 @@ namespace OROptimizer.DynamicCode
             Dispose(true);
         }
 
-        [Obsolete]
+        [Obsolete("Will be removed after 05/31/2023.")]
         public void FinalizeDynamicallyGeneratedClass(string className, string classNamespace)
         {
             LogHelper.Context.Log.ErrorFormat("Method {0} was deprecated.", nameof(FinalizeDynamicallyGeneratedClass));

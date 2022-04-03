@@ -50,7 +50,7 @@ namespace OROptimizer.DynamicCode
         /// <param name="nameSpace">Namespace like.</param>
         void AddUsingNamespaceStatement([NotNull] string nameSpace);
 
-        [Obsolete("Use 'AddUsingNamespaceStatement(string nameSpace)' instead.")]
+        [Obsolete("Will be removed after 05/31/2023. Use 'AddUsingNamespaceStatement(string nameSpace)' instead.  Will be removed after 05/31/2023.")]
         void AddUsingNamespaceStatment([NotNull] string nameSpace);
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace OROptimizer.DynamicCode
         /// <summary>
         ///     Finalizes the and add to assembly.
         /// </summary>
-        [Obsolete("Use GenerateCSharpFile() instead. The class is added to assembly when OROptimizer.DynamicCode.IDynamicAssemblyBuilder.StartDynamicallyGeneratedClass() is called. OROptimizer.DynamicCode.IDynamicAssemblyBuilder will call  anymore. The class is finalized in IDynamicAssemblyBuilder.Dispose() method. The new implementation of this method does not do anything. This method will be removed in near future.")]
+        [Obsolete(" Will be removed after 05/31/2023. Use GenerateCSharpFile() instead. The class is added to assembly when OROptimizer.DynamicCode.IDynamicAssemblyBuilder.StartDynamicallyGeneratedClass() is called. OROptimizer.DynamicCode.IDynamicAssemblyBuilder will call  anymore. The class is finalized in IDynamicAssemblyBuilder.Dispose() method. The new implementation of this method does not do anything. This method will be removed in near future.")]
         void FinalizeAndAddToAssembly();
 
         /// <summary>

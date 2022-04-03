@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<Version>2.0.2</Version>
+		<PackageVersion>2.1.0</PackageVersion>
+		<Version></Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -12,7 +13,6 @@
 		<PackageTags>OROptimizer Log dynamic code</PackageTags>
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
-		<PackageLicenseUrl>https://opensource.org/licenses/mit-license.php</PackageLicenseUrl>
 		<PackageReleaseNotes>
 			1) -Made the following improvements to interfaces OROptimizer.DynamicCode.IDynamicAssemblyBuilder and OROptimizer.DynamicCode.IDynamicallyGeneratedClass as follows:
 			   - Deprecated the method FinalizeDynamicallyGeneratedClass() in OROptimizer.DynamicCode.IDynamicAssemblyBuilder. No need to call this method anymore, since classes will be finalized when the assembly is built in IDisposable.Dispose().

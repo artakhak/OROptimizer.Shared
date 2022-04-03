@@ -73,7 +73,6 @@ namespace OROptimizer.DynamicCode
         ///     <see cref="StartDynamicallyGeneratedClass(string, string)"/> do not provide enough flexibility.
         /// </summary>
         /// <param name="cSharpFileContents">The c# file contents.</param>
-        //[Obsolete("This methods are not necessary anymore, since classes are added when one of overloaded StartDynamicallyGeneratedClass() methods is called. The new implementation does not anything and will be deleted in the future.")]
         void AddCSharpFile([NotNull] string cSharpFileContents);
 
         /// <summary>
@@ -107,7 +106,7 @@ namespace OROptimizer.DynamicCode
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="classNamespace">The class namespace. If the value is null, the default namespace will be used.</param>
-        [Obsolete("Classes will be finalized when the assembly is build in IDisposable.Dispose(). No need to call FinalizeDynamicallyGeneratedClass() anymore. The new implementation does not anything and will be deleted in the future.")]
+        [Obsolete("Will be removed after 05/31/2023. Classes will be finalized when the assembly is build in IDisposable.Dispose(). No need to call FinalizeDynamicallyGeneratedClass() anymore. The new implementation does not anything and will be deleted in the future. Will be removed after 05/31/2023.")]
         void FinalizeDynamicallyGeneratedClass(string className, [CanBeNull] string classNamespace = null);
 
         /// <summary>
