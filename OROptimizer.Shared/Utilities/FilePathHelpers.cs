@@ -82,7 +82,7 @@ namespace OROptimizer.Utilities
 
                 // Uncomment this line and remove the next one, once the package uses latest C#. 
                 //filePathItems.AddRange(includedTemplateRelativePathComponents.TakeLast(includedTemplateRelativePathComponents.Length - numberOfParentFolderReferences));
-                for (var i = includedTemplateRelativePathComponents.Length - numberOfParentFolderReferences; i < includedTemplateRelativePathComponents.Length; ++i)
+                for (var i = numberOfParentFolderReferences; i < includedTemplateRelativePathComponents.Length; ++i)
                     filePathItems.Add(includedTemplateRelativePathComponents[i]);
 
                 return(true, Path.Combine(filePathItems.ToArray()), null);
