@@ -125,7 +125,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2021.2.0" PrivateAssets="all" ExcludeAssets="runtime">
+		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" PrivateAssets="all" ExcludeAssets="runtime">
 		  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="log4net" Version=" 2.0.12" />
