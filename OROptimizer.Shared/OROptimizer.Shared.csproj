@@ -43,6 +43,7 @@
 	  <Compile Include="Delegates.cs" />
 	  <Compile Include="Diagnostics\CreateObjectInfoDelegate.cs" />
 	  <Compile Include="Diagnostics\IObjectsCache.cs" />
+	  <Compile Include="Diagnostics\Log\AddedContextProperties.cs" />
 	  <Compile Include="Diagnostics\Log\ILog.cs" />
 	  <Compile Include="Diagnostics\Log\ILogHelperContext.cs" />
 	  <Compile Include="Diagnostics\Log\Log4NetHelperContext.cs" />

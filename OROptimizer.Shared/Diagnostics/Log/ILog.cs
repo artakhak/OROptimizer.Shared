@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace OROptimizer.Diagnostics.Log
@@ -71,5 +72,23 @@ namespace OROptimizer.Diagnostics.Log
 
         [StringFormatMethod("format")]
         void WarnFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
+
+        /// <summary>
+        /// Adds values to context. The implementation is responsible for including the values with every log, if
+        /// logger is configured to show the value.
+        /// </summary>
+        /// <param name="contextProperties">Collection of key/value pairs added to logger context.</param>
+        /// <returns>
+        /// Returns disposable object that is responsible for removing the added context properties when <see cref="IDisposable.Dispose"/> is called.
+        /// Instance of class <see cref="AddedContextProperties"/> (or similar) can be used as return value.
+        /// </returns>
+        IDisposable AddContextProperties(IEnumerable<KeyValuePair<string, string>> contextProperties);
+
+        /// <summary>
+        /// Adds a value for context key. The implementation is responsible for including the value with every log, if
+        /// logger is configured to show the value.
+        /// </summary>
+        /// <param name="key">Context key.</param>
+        void RemoveContextProperty(string key);
     }
 }

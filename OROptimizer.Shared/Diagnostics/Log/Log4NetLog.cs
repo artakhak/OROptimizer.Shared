@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace OROptimizer.Diagnostics.Log
@@ -34,14 +35,9 @@ namespace OROptimizer.Diagnostics.Log
     /// <seealso cref="OROptimizer.Diagnostics.Log.ILog" />
     public class Log4NetLog : ILog
     {
-        #region Member Variables
 
         [NotNull]
         private readonly log4net.ILog _log;
-
-        #endregion
-
-        #region  Constructors
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Log4NetLog" /> class.
@@ -52,102 +48,140 @@ namespace OROptimizer.Diagnostics.Log
             _log = log;
         }
 
-        #endregion
-
-        #region ILog Interface Implementation
-
+        /// <inheritdoc />
         public void Debug(string message)
         {
             _log.Debug(message);
         }
 
+        /// <inheritdoc />
         public void Debug(string message, Exception exception)
         {
             _log.Debug(message, exception);
         }
 
+        /// <inheritdoc />
         public void DebugFormat(string format, params object[] args)
         {
             _log.DebugFormat(format, args);
         }
 
+        /// <inheritdoc />
         public void Error(string message)
         {
             _log.Error(message);
         }
 
+        /// <inheritdoc />
         public void Error(string message, Exception exception)
         {
             _log.Error(message, exception);
         }
 
+        /// <inheritdoc />
         public void Error(Exception exception)
         {
             _log.Error(string.Empty, exception);
         }
 
+        /// <inheritdoc />
         public void ErrorFormat(string format, params object[] args)
         {
             _log.ErrorFormat(format, args);
         }
 
+        /// <inheritdoc />
         public void Fatal(string message)
         {
             _log.Fatal(message);
         }
 
+        /// <inheritdoc />
         public void Fatal(string message, Exception exception)
         {
             _log.Fatal(message, exception);
         }
 
+        /// <inheritdoc />
         public void Fatal(Exception exception)
         {
             _log.Fatal(string.Empty, exception);
         }
 
+        /// <inheritdoc />
         public void FatalFormat(string format, params object[] args)
         {
             _log.FatalFormat(format, args);
         }
 
+        /// <inheritdoc />
         public void Info(string message, Exception exception)
         {
             _log.Info(message, exception);
         }
 
+        /// <inheritdoc />
         public void Info(string message)
         {
             _log.Info(message);
         }
 
+        /// <inheritdoc />
         public void InfoFormat(string format, params object[] args)
         {
             _log.InfoFormat(format, args);
         }
 
+        /// <inheritdoc />
         public bool IsDebugEnabled => _log.IsDebugEnabled;
+
+        /// <inheritdoc />
         public bool IsErrorEnabled => _log.IsErrorEnabled;
 
+        /// <inheritdoc />
         public bool IsFatalEnabled => _log.IsFatalEnabled;
+
+        /// <inheritdoc />
         public bool IsInfoEnabled => _log.IsInfoEnabled;
+
+        /// <inheritdoc />
         public bool IsWarnEnabled => _log.IsWarnEnabled;
 
+        /// <inheritdoc />
         public void Warn(string message)
         {
             _log.Warn(message);
         }
 
+        /// <inheritdoc />
         public void Warn(string message, Exception exception)
         {
             _log.Warn(message, exception);
         }
 
+        /// <inheritdoc />
         public void WarnFormat(string format, params object[] args)
         {
             _log.WarnFormat(format, args);
         }
 
-        #endregion
+        /// <inheritdoc />
+        public IDisposable AddContextProperties(IEnumerable<KeyValuePair<string, string>> contextProperties)
+        {
+            // ReSharper disable once PossibleMultipleEnumeration
+            foreach (var keyValuePair in contextProperties)
+            {
+                log4net.ThreadContext.Properties[keyValuePair.Key] = keyValuePair.Value;
+            }
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            return new AddedContextProperties(contextProperties, this);
+        }
+
+        /// <inheritdoc />
+        public void RemoveContextProperty(string key)
+        {
+            log4net.ThreadContext.Properties.Remove(key);
+        }
     }
 }

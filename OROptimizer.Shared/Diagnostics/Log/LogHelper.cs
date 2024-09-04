@@ -33,18 +33,17 @@ namespace OROptimizer.Diagnostics.Log
     /// </summary>
     public static class LogHelper
     {
-        #region Member Variables
-
         [CanBeNull]
         private static ILogHelperContext _context;
 
         [NotNull]
         private static readonly object _lockObject = new object();
 
-        #endregion
 
-        #region Member Functions
 
+        // TODO: Consider removing Context and replace with ILog.
+        // ILogHelperContext was used originally with the though that ILogHelperContext might have some other logger related
+        // properties aside from ILog, however so far no new property was added (see if new properties still might be added).
         /// <summary>
         ///     Gets the context.
         /// </summary>
@@ -100,7 +99,5 @@ namespace OROptimizer.Diagnostics.Log
             lock (_lockObject)
                 _context = null;
         }
-
-        #endregion
     }
 }

@@ -27,8 +27,6 @@ namespace OROptimizer.Diagnostics.Log
 {
     public interface ILogHelperContext
     {
-        #region Current Type Interface
-
         /// <summary>
         ///     Gets the log.
         /// </summary>
@@ -36,7 +34,5 @@ namespace OROptimizer.Diagnostics.Log
         ///     The log.
         /// </value>
         ILog Log { get; }
-
-        #endregion
     }
 }

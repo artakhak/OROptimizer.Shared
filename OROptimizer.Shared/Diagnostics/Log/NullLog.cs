@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 
 namespace OROptimizer.Diagnostics.Log
 {
@@ -131,6 +132,17 @@ namespace OROptimizer.Diagnostics.Log
 
         /// <inheritdoc />
         public void WarnFormat(string format, params object[] args)
+        {
+        }
+
+        /// <inheritdoc />
+        public IDisposable AddContextProperties(IEnumerable<KeyValuePair<string, string>> contextProperties)
+        {
+            return new AddedContextProperties(contextProperties, this);
+        }
+
+        /// <inheritdoc />
+        public void RemoveContextProperty(string key)
         {
         }
     }
