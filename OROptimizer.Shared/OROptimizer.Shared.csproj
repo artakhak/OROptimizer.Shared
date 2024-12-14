@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.1.1</PackageVersion>
+		<PackageVersion>2.1.2</PackageVersion>
 		<Version></Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
@@ -13,8 +13,7 @@
 		<PackageTags>OROptimizer Log dynamic code</PackageTags>
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
-		<PackageReleaseNotes>
-			Added a methods for adding and removing logging context properties
+		<PackageReleaseNotes>Added a methods for adding and removing logging context properties
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
