@@ -1,0 +1,1 @@
+﻿A shared library used in OROptimizer as well as in some other related projects

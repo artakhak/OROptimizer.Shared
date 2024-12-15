@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
 		<PackageVersion>2.1.2</PackageVersion>
-		<Version></Version>
+		<Version>2.1.2</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -116,6 +116,10 @@
 	  <Compile Include="Utilities\FilePathHelpers.cs" />
 	  <Compile Include="Utilities\TreeProcessor.cs" />
 	  <Compile Include="Utilities\Xml\XmlDocumentExtensions.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="README.md" />
 	</ItemGroup>
 
 	<ItemGroup>
