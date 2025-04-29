@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -278,6 +278,6 @@ namespace OROptimizer
         /// <returns>Returns the loaded assembly.</returns>
         /// <exception cref="Exception">Throws an exception if load fails.</exception>
         [NotNull]
-        System.Reflection.Assembly LoadAssembly([NotNull] string assemblyFilePath);
+        Assembly LoadAssembly([NotNull] string assemblyFilePath);
     }
 }

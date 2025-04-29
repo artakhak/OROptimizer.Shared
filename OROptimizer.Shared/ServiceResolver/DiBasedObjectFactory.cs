@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using JetBrains.Annotations;
+using OROptimizer.Diagnostics.Log;
 
 namespace OROptimizer.ServiceResolver
 {
@@ -48,18 +48,36 @@ namespace OROptimizer.ServiceResolver
         [NotNull]
         private readonly Dictionary<Type, ImplementationTypeInfo> _serviceToImplementationTypeMap = new Dictionary<Type, ImplementationTypeInfo>();
 
+        
         /// <inheritdoc />
+        [Obsolete]
         public T CreateInstance<T>(TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null) //where T : class
         {
-            if (CreateInstance(typeof(T), tryResolveConstructorParameterValue) is T implementation)
-                return implementation;
-
-            throw new ArgumentException($"Failed to create an instance of type '{typeof(T).FullName}'.");
+            var tryResolveConstructorParameterValueDelegate =
+                tryResolveConstructorParameterValue ?? ((x, y) =>
+                    (false, null));
+            
+            return this.CreateInstance<T>(ServiceResolverAmbientContext.Context,
+                    tryResolveConstructorParameterValueDelegate, LogHelper.Context.Log);
         }
 
         /// <inheritdoc />
+        [Obsolete]
         public object CreateInstance(Type type, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null)
         {
+            var tryResolveConstructorParameterValueDelegate =
+                tryResolveConstructorParameterValue ?? ((x, y) =>
+                    (false, null));
+
+            return CreateInstance(type, ServiceResolverAmbientContext.Context, tryResolveConstructorParameterValueDelegate, LogHelper.Context.Log);
+        }
+
+        /// <inheritdoc />
+        public object CreateInstance(Type type, IServiceResolver serviceResolver, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue, ILog logger = null)
+        {
+            LocalLoggerAmbientContext.Context = logger ?? new LogToConsole(LogLevel.Debug);
+            LocalServiceResolverAmbientContext.Context = serviceResolver;
+
             string GetErrorMessage(Type implementationType, string errorDetails)
             {
                 var errorMessage = new StringBuilder();
@@ -126,11 +144,11 @@ namespace OROptimizer.ServiceResolver
             object createdInstance;
             try
             {
-                createdInstance = CreateInstance(implementationTypeInfo.ConstructorInfo, constructorParameterValuesResult.parameterValues);
+                createdInstance = CreateInstance(type, implementationTypeInfo.ConstructorInfo, constructorParameterValuesResult.parameterValues);
             }
             catch
             {
-                LogHelper.Context.Log.Error(GetErrorMessage(implementationTypeInfo.ImplementationType, $"Failed to create an instance of type '{implementationTypeInfo.ImplementationType.FullName}' using constructor with parameters of types [{string.Join(",", implementationTypeInfo.ConstructorInfo.GetParameters().Select(x => x.ParameterType.FullName))}]."));
+                LocalLoggerAmbientContext.Context.Error(GetErrorMessage(implementationTypeInfo.ImplementationType, $"Failed to create an instance of type '{implementationTypeInfo.ImplementationType.FullName}' using constructor with parameters of types [{string.Join(",", implementationTypeInfo.ConstructorInfo.GetParameters().Select(x => x.ParameterType.FullName))}]."));
                 throw;
             }
 
@@ -166,7 +184,7 @@ namespace OROptimizer.ServiceResolver
         [CanBeNull]
         protected virtual ConstructorInfo GetConstructorInfo([NotNull] Type implementationType)
         {
-            var constructorInfos = implementationType.GetConstructors(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+            var constructorInfos = implementationType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
 
             ConstructorInfo candidateConstructorInfo = null;
             System.Reflection.ParameterInfo[] candidateConstructorInfoParameters = null;
@@ -217,13 +235,13 @@ namespace OROptimizer.ServiceResolver
                     }
 
                     if (!parameterValueWasResolved)
-                        parameterValue = ServiceResolverAmbientContext.Context.Resolve(parameterInfo.ParameterType);
+                        parameterValue = ResolveConstructorParameterValue(implementationConstructorInfo, parameterInfo);
 
                     constructorParameterValues[paramIndex] = parameterValue;
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Context.Log.Error(e);
+                    LocalLoggerAmbientContext.Context.Error(e);
                     return (false, null, $"Failed to resolve the value of constructor parameter '{parameterInfo.Name}' of type '{parameterInfo.ParameterType.FullName}' when trying to construct an instance of '{implementationType.FullName}'.");
                 }
             }
@@ -231,14 +249,21 @@ namespace OROptimizer.ServiceResolver
             return (true, constructorParameterValues, null);
         }
 
+
+        protected virtual object ResolveConstructorParameterValue([NotNull] ConstructorInfo injectedIntoConstructorInfo, [NotNull] System.Reflection.ParameterInfo parameterInfo)
+        {
+            return LocalServiceResolverAmbientContext.Context.Resolve(parameterInfo.ParameterType);
+        }
+
         /// <summary>
         /// Creates an instance of object.
         /// </summary>
+        /// <param name="resolvedType">Resolved type. This normally be an interface type being resolved, unless the injected parameter is not an interface.</param>
         /// <param name="constructorInfo">Constructor info of created object.</param>
         /// <param name="constructorParameterValues">Constructor parameter values.</param>
         /// <returns></returns>
         [NotNull]
-        protected virtual object CreateInstance([NotNull] ConstructorInfo constructorInfo, [NotNull] object[] constructorParameterValues)
+        protected virtual object CreateInstance(Type resolvedType, [NotNull] ConstructorInfo constructorInfo, [NotNull] object[] constructorParameterValues)
         {
             return constructorInfo.Invoke(constructorParameterValues);
         }
@@ -334,6 +359,16 @@ namespace OROptimizer.ServiceResolver
 
             [NotNull]
             public ConstructorInfo ConstructorInfo { get; }
+        }
+
+        private class LocalLoggerAmbientContext : AmbientContext<ILog, NullLog>
+        {
+
+        }
+
+        private class LocalServiceResolverAmbientContext : AmbientContext<IServiceResolver, NullServiceResolver>
+        {
+
         }
     }
 }

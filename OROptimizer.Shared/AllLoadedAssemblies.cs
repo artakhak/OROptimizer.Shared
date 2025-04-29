@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person

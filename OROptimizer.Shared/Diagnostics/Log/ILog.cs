@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -31,7 +31,7 @@ namespace OROptimizer.Diagnostics.Log
 {
     /// <summary>
     ///     A logger interface.
-    ///     See <see cref="Log4NetLog" /> for specific implementation details.
+    ///     See [OROptimizer.Shared.Log4Net.Log4NetLog] in nuget package [OROptimizer.Shared.Log4Net] for specific implementation details.
     /// </summary>
     public interface ILog
     {
@@ -39,27 +39,27 @@ namespace OROptimizer.Diagnostics.Log
         void Debug([NotNull] string message, [NotNull] Exception exception);
 
         [StringFormatMethod("format")]
-        void DebugFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
+        void DebugFormat([NotNull] string format, [CanBeNull] [ItemCanBeNull] params object[] args);
 
         void Error([NotNull] string message);
         void Error([NotNull] string message, [NotNull] Exception exception);
         void Error([NotNull] Exception exception);
 
         [StringFormatMethod("format")]
-        void ErrorFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
+        void ErrorFormat([NotNull] string format, [CanBeNull] [ItemCanBeNull] params object[] args);
 
         void Fatal([NotNull] string message);
         void Fatal([NotNull] string message, [NotNull] Exception exception);
         void Fatal([NotNull] Exception exception);
 
         [StringFormatMethod("format")]
-        void FatalFormat(string format, [CanBeNull] [ItemNotNull] params object[] args);
+        void FatalFormat(string format, [CanBeNull] [ItemCanBeNull] params object[] args);
 
         void Info([NotNull] string message, [NotNull] Exception exception);
         void Info([NotNull] string message);
 
         [StringFormatMethod("format")]
-        void InfoFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
+        void InfoFormat([NotNull] string format, [CanBeNull] [ItemCanBeNull] params object[] args);
 
         bool IsDebugEnabled { get; }
         bool IsErrorEnabled { get; }
@@ -71,7 +71,7 @@ namespace OROptimizer.Diagnostics.Log
         void Warn([NotNull] string message, [NotNull] Exception exception);
 
         [StringFormatMethod("format")]
-        void WarnFormat([NotNull] string format, [CanBeNull] [ItemNotNull] params object[] args);
+        void WarnFormat([NotNull] string format, [CanBeNull] [ItemCanBeNull] params object[] args);
 
         /// <summary>
         /// Adds values to context. The implementation is responsible for including the values with every log, if

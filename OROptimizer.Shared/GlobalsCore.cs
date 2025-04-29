@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,15 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
-using OROptimizer.DynamicCode;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using JetBrains.Annotations;
+using OROptimizer.Diagnostics.Log;
+using OROptimizer.DynamicCode;
 
 namespace OROptimizer
 {
@@ -171,7 +171,7 @@ namespace OROptimizer
         /// <param name="assemblyFilePath">Assembly file path.</param>
         /// <returns>Returns the loaded assembly.</returns>
         /// <exception cref="Exception">Throws an exception if load fails.</exception>
-        public System.Reflection.Assembly LoadAssembly([NotNull] string assemblyFilePath)
+        public Assembly LoadAssembly([NotNull] string assemblyFilePath)
         {
             return Assembly.LoadFrom(assemblyFilePath);
         }

@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -29,8 +29,8 @@ namespace OROptimizer.ServiceResolver
     /// Ambient context for accessing service resolver globally, when constructor or property dependency injection
     /// does not work (for example in UWP or Windows forms applications when a control class should have a parameter-less constructor). 
     /// Example of setting context is:
-    /// <see cref="ServiceResolverAmbientContext"/>.Context = new IoC.Configuration.Ninject.NinjectDiContainer(); where
-    /// "IoC.Configuration.DiContainer.IDiContainer" is in IoC.Configuration.Ninject Nuget package
+    /// <see cref="ServiceResolverAmbientContext"/>.Context = new OROptimizer.Ninject.NinjectDiContainer(); where
+    /// "OROptimizer.DiContainer.IDiContainer" is in OROptimizer.Ninject Nuget package
     /// </summary>
     public class ServiceResolverAmbientContext : AmbientContext<IServiceResolver, NullServiceResolver>
     {

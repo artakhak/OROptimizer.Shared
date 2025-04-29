@@ -1,5 +1,5 @@
-// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -32,17 +32,11 @@ namespace OROptimizer.Diagnostics.Log
 {
     public abstract class LogHelperContextAbstr : ILogHelperContext
     {
-        #region Member Variables
-
         [NotNull]
         private static readonly object _lock = new object();
 
         [NotNull]
         private readonly Dictionary<Type, ILog> _owningTypeToLog = new Dictionary<Type, ILog>();
-
-        #endregion
-
-        #region ILogHelperContext Interface Implementation
 
         /// <summary>
         ///     Gets the log.
@@ -73,17 +67,11 @@ namespace OROptimizer.Diagnostics.Log
             }
         }
 
-        #endregion
-
-        #region Current Type Interface
-
         /// <summary>
         ///     Pass the type where the log will be used.
         /// </summary>
         /// <param name="typeThatOwnsTheLog"></param>
         /// <returns></returns>
         protected abstract ILog CreateLog(Type typeThatOwnsTheLog);
-
-        #endregion
     }
 }

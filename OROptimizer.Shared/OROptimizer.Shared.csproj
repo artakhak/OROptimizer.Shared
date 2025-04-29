@@ -3,12 +3,17 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.1.2</PackageVersion>
-		<Version>2.1.2</Version>
+		<PackageVersion>2.2.0</PackageVersion>
+		<Version>2.2.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
-		<Description>A shared library used in OROptimizer as well as in some other related projects</Description>
+		<Description>-Moved log4net implementation of OROptimizer.Diagnostics.Log.ILog and OROptimizer.Diagnostics.Log.Log4NetHelperContext to new library  OROptimizer.Shared.Log4Net
+            -Bumped up some MS package versions
+            -Added ThreadStatis ambient context
+            -Added IDefaultImplementationBasedObjectFactory and related classes
+            -Updated license file typo
+		</Description>
 		<Copyright>Copyright 2018 (c) OROptimizer. All rights reserved.</Copyright>
 		<PackageTags>OROptimizer Log dynamic code</PackageTags>
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
@@ -38,6 +43,8 @@
 
 	<ItemGroup>
 	  <Compile Include="AmbientContext.cs" />
+	  <Compile Include="ThreadStaticAmbientContext.cs" />
+	  <Compile Include="AmbientContextHelpers.cs" />
 	  <Compile Include="AssemblyResolver.cs" />
 	  <Compile Include="Delegates.cs" />
 	  <Compile Include="Diagnostics\CreateObjectInfoDelegate.cs" />
@@ -45,11 +52,11 @@
 	  <Compile Include="Diagnostics\Log\AddedContextProperties.cs" />
 	  <Compile Include="Diagnostics\Log\ILog.cs" />
 	  <Compile Include="Diagnostics\Log\ILogHelperContext.cs" />
-	  <Compile Include="Diagnostics\Log\Log4NetHelperContext.cs" />
-	  <Compile Include="Diagnostics\Log\Log4NetLog.cs" />
 	  <Compile Include="Diagnostics\Log\LoggerWasNotInitializedException.cs" />
 	  <Compile Include="Diagnostics\Log\LogHelper.cs" />
 	  <Compile Include="Diagnostics\Log\LogHelperContextAbstr.cs" />
+	  <Compile Include="Diagnostics\Log\LogLevel.cs" />
+	  <Compile Include="Diagnostics\Log\LogToConsole.cs" />
 	  <Compile Include="Diagnostics\Log\NullLog.cs" />
 	  <Compile Include="Diagnostics\Log\NullLogHelperContext.cs" />
 	  <Compile Include="Diagnostics\ObjectInfo.cs" />
@@ -103,8 +110,14 @@
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerShort.cs" />
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerString.cs" />
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerType.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\DefaultImplementationBasedObjectFactory.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ResolvedTypeInfo.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ResolvedTypeInstanceWasCreated.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ResolvedTypeTargetInfo.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\TryResolveConstructorParameterValueDelegate.cs" />
 	  <Compile Include="ServiceResolver\DiBasedObjectFactory.cs" />
 	  <Compile Include="ServiceResolver\DiBasedObjectFactoryAmbientContext.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\IDefaultImplementationBasedObjectFactory.cs" />
 	  <Compile Include="ServiceResolver\IDiBasedObjectFactory.cs" />
 	  <Compile Include="ServiceResolver\IServiceResolver.cs" />
 	  <Compile Include="ServiceResolver\NullServiceResolver.cs" />
@@ -132,8 +145,7 @@
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" PrivateAssets="all" ExcludeAssets="runtime">
 		  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="log4net" Version=" 2.0.12" />
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="2.3.2" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.13.0" />
 		<PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
 	</ItemGroup>
 

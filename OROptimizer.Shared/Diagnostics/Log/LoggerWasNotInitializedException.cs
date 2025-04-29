@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -52,8 +52,8 @@ namespace OROptimizer.Diagnostics.Log
             var errorMessage = new StringBuilder();
             errorMessage.AppendLine($"Logger was not initialized. Before using {typeof(LogHelper).FullName}.{nameof(LogHelper.Context)}, make sure to call the method {typeof(LogHelper).FullName}.{nameof(LogHelper.RegisterContext)}({typeof(ILogHelperContext).FullName}).");
             errorMessage.AppendLine($"The easiest way to implement {typeof(ILogHelperContext).FullName} is to subclass the abstract class {typeof(LogHelperContextAbstr).FullName} and to override the method CreateLog(Type typeThatOwnsTheLog) which returns an instance of {typeof(ILog)}.");
-            errorMessage.AppendLine($"Example is: {typeof(LogHelper).FullName}.{nameof(LogHelper.RegisterContext)}(new {typeof(Log4NetHelperContext).FullName}(\"MyApp.log4net.config\"));");
-            errorMessage.AppendLine($"Class {typeof(Log4NetHelperContext).FullName} can be found in Nuget package OROptimizer.Shared.");
+            errorMessage.AppendLine($"Example is: {typeof(LogHelper).FullName}.{nameof(LogHelper.RegisterContext)}(new OROptimizer.Shared.Log4Net.Log4NetHelperContext(\"MyApp.log4net.config\"));");
+            errorMessage.AppendLine("Class [OROptimizer.Shared.Log4Net.Log4NetHelperContext] can be found in Nuget package OROptimizer.Shared.Log4Net.");
             return errorMessage.ToString();
         }
 
