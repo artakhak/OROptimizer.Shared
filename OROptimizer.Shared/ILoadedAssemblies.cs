@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -30,13 +30,13 @@ using JetBrains.Annotations;
 namespace OROptimizer
 {
     /// <summary>
-    /// Returns list of assemblies. The implementation might chose to skip some assemblies.
+    /// Returns a list of assemblies. The implementation might choose to skip some assemblies.
     /// Default implementations <see cref="AllLoadedAssemblies"/> or <see cref="NoLoadedAssemblies"/> can be used in most cases.
     /// </summary>
     public interface ILoadedAssemblies
     {
         /// <summary>
-        /// Returns currently loaded assemblies. The implementation might chose to skip some assemblies.
+        /// Returns currently loaded assemblies. The implementation might choose to skip some assemblies.
         /// Default implementations <see cref="AllLoadedAssemblies"/> or <see cref="NoLoadedAssemblies"/> can be used in most cases.
         /// </summary>
         /// <returns></returns>

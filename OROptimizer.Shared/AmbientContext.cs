@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -23,9 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
 using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
 
 namespace OROptimizer
 {
@@ -35,41 +33,16 @@ namespace OROptimizer
     /// <typeparam name="TContext">The type of the context.</typeparam>
     /// <typeparam name="TContextDefaultImplementation">The type of the context default implementation.</typeparam>
     /// <seealso cref="GlobalsCoreAmbientContext" />
-    public class AmbientContext<TContext, TContextDefaultImplementation> where TContext : class
-        where TContextDefaultImplementation : class
+    public class AmbientContext<TContext, TContextDefaultImplementation>
+        where TContext : class
+        where TContextDefaultImplementation :  class, new()
     {
         private static TContext _context;
         private static readonly TContext _defaultContext;
         
         static AmbientContext()
         {
-            var interfaceType = typeof(TContext);
-            var implementationType = typeof(TContextDefaultImplementation);
-
-            if (interfaceType.IsAssignableFrom(implementationType))
-            {
-                var constructorInfo = implementationType.GetConstructor(new Type[] { });
-
-                if (constructorInfo != null && constructorInfo.IsPublic)
-                {
-                    try
-                    {
-                        _defaultContext = (TContext)constructorInfo.Invoke(new object[] { });
-                    }
-                    catch (Exception e)
-                    {
-                        LogHelper.Context.Log.Error($"Failed to set the default context of type '{typeof(TContext).FullName}'.", e);
-                        throw new Exception($"Failed to construct an object of type '{implementationType.FullName}' using the default constructor.");
-                    }
-                }
-            }
-
-            if (_defaultContext == null)
-            {
-                LogHelper.Context.Log.Error($"Type '{implementationType.FullName}' should be an implementation of type '{interfaceType.FullName}' and should have a public parameterless constructor.");
-                throw new Exception($"Invalid types specified: '{interfaceType.FullName}', '{implementationType.FullName}'.");
-            }
-
+            _defaultContext = AmbientContextHelpers.CreateDefaultImplementation<TContext, TContextDefaultImplementation>();
             SetDefaultContext();
         }
 

@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -35,13 +35,13 @@ namespace OROptimizer.ServiceResolver
         /// <inheritdoc />
         public T Resolve<T>() where T : class
         {
-            throw new System.ArgumentException($"Failed to resolve type '{typeof(T)}'.");
+            throw new ArgumentException($"Failed to resolve type '{typeof(T)}'.");
         }
 
         /// <inheritdoc />
         public object Resolve(Type type)
         {
-            throw new System.ArgumentException($"Failed to resolve type '{type}'.");
+            throw new ArgumentException($"Failed to resolve type '{type}'.");
         }
     }
 }

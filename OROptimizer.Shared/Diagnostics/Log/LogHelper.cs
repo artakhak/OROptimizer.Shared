@@ -1,5 +1,5 @@
-﻿// This software is part of the IoC.Configuration library
-// Copyright © 2018 IoC.Configuration Contributors
+﻿// This software is part of the OROptimizer library
+// Copyright © 2018 OROptimizer Contributors
 // http://oroptimizer.com
 
 // Permission is hereby granted, free of charge, to any person
@@ -38,8 +38,6 @@ namespace OROptimizer.Diagnostics.Log
 
         [NotNull]
         private static readonly object _lockObject = new object();
-
-
 
         // TODO: Consider removing Context and replace with ILog.
         // ILogHelperContext was used originally with the though that ILogHelperContext might have some other logger related
