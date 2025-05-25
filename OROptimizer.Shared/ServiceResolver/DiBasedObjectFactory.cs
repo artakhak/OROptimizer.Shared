@@ -23,13 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using JetBrains.Annotations;
+using OROptimizer.Diagnostics.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
 
 namespace OROptimizer.ServiceResolver
 {
@@ -46,12 +46,15 @@ namespace OROptimizer.ServiceResolver
 
         [NotNull]
         private readonly Dictionary<Type, ImplementationTypeInfo> _serviceToImplementationTypeMap = new Dictionary<Type, ImplementationTypeInfo>();
-
+        
         /// <inheritdoc />
         public object CreateInstance(Type type, IServiceResolver serviceResolver, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue, ILog logger = null)
         {
             LocalLoggerAmbientContext.Context = logger ?? new LogToConsole(LogLevel.Debug);
             LocalServiceResolverAmbientContext.Context = serviceResolver;
+
+            if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                LocalLoggerAmbientContext.Context.InfoFormat("Resolving type [{0}].", type);
 
             string GetErrorMessage(Type implementationType, string errorDetails)
             {
@@ -188,11 +191,21 @@ namespace OROptimizer.ServiceResolver
         {
             var constructorParameters = implementationConstructorInfo.GetParameters();
 
+            if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData && constructorParameters.Length > 0)
+                LocalLoggerAmbientContext.Context.InfoFormat("Resolving {0} parameters in constructor of [{1}].",
+                    constructorParameters.Length, implementationType);
+
             object[] constructorParameterValues = new object[constructorParameters.Length];
 
             for (var paramIndex = 0; paramIndex < constructorParameterValues.Length; ++paramIndex)
             {
                 var parameterInfo = constructorParameters[paramIndex];
+
+                if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                    LocalLoggerAmbientContext.Context.InfoFormat("Resolving parameter [{0}] of type [{1}] in constructor of type [{2}].",
+                        parameterInfo.Name,
+                        parameterInfo.ParameterType, implementationType);
+
                 try
                 {
                     var parameterValueWasResolved = false;
@@ -212,11 +225,23 @@ namespace OROptimizer.ServiceResolver
                     if (!parameterValueWasResolved)
                         parameterValue = ResolveConstructorParameterValue(implementationConstructorInfo, parameterInfo);
 
+                    if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                        LocalLoggerAmbientContext.Context.InfoFormat("Resolved parameter [{0}] of type [{1}] in constructor of type [{2}] to [{3}].",
+                            parameterInfo.Name,
+                            parameterInfo.ParameterType, implementationType,
+                            parameterValue.GetType());
+
                     constructorParameterValues[paramIndex] = parameterValue;
                 }
                 catch (Exception e)
                 {
+                    if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                        LocalLoggerAmbientContext.Context.ErrorFormat("Failed to resolve parameter [{0}] of type [{1}] in constructor of type [{2}].",
+                            parameterInfo.Name,
+                            parameterInfo.ParameterType, implementationType);
+
                     LocalLoggerAmbientContext.Context.Error(e);
+                    
                     return (false, null, $"Failed to resolve the value of constructor parameter '{parameterInfo.Name}' of type '{parameterInfo.ParameterType.FullName}' when trying to construct an instance of '{implementationType.FullName}'.");
                 }
             }

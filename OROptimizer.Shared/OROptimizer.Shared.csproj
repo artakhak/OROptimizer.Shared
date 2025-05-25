@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.2.0</PackageVersion>
-		<Version>2.2.0</Version>
+		<PackageVersion>2.3.0</PackageVersion>
+		<Version>2.3.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,11 +14,8 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-            -Moved log4net implementation of OROptimizer.Diagnostics.Log.ILog and OROptimizer.Diagnostics.Log.Log4NetHelperContext to new library  OROptimizer.Shared.Log4Net
-            -Bumped up some MS package versions
-            -Added ThreadStatis ambient context
-            -Added IDefaultImplementationBasedObjectFactory and related classes
-            -Updated license file typo
+            -Added diagnostics logs for types resolved by OROptimizer.ServiceResolver.DiBasedObjectFactory. The logs are turned off by default and can be turned on by using
+			 ambient context value DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData.
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -44,6 +41,8 @@
 
 	<ItemGroup>
 	  <Compile Include="AmbientContext.cs" />
+	  <Compile Include="ServiceResolver\DiBasedObjectFactoryParametersContext.cs" />
+	  <Compile Include="ServiceResolver\IDiBasedObjectFactoryParameters.cs" />
 	  <Compile Include="ThreadStaticAmbientContext.cs" />
 	  <Compile Include="AmbientContextHelpers.cs" />
 	  <Compile Include="AssemblyResolver.cs" />
