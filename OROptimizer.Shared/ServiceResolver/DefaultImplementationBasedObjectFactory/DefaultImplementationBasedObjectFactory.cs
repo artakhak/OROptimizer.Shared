@@ -1,32 +1,39 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using OROptimizer.Diagnostics.Log;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
-using OROptimizer.Diagnostics.Log;
 
 namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
 {
-    /// <inheritdoc />
-    public class DefaultImplementationBasedObjectFactory: IDefaultImplementationBasedObjectFactory
+    /// <summary>
+    /// Default implementation of <see cref="IDefaultImplementationBasedObjectFactoryEx"/>.
+    /// </summary>
+    public class DefaultImplementationBasedObjectFactory : IDefaultImplementationBasedObjectFactoryEx, IDisposable
     {
-        private readonly NoServiceProviderDiBasedObjectFactory _noServiceProviderDiBasedObjectFactory;
-        private readonly DefaultImplementationBasedObjectFactoryServiceResolver _serviceResolver;
-
+        private readonly Func<Type, bool> _resolvedTypeInstanceCanBeCached;
         private readonly object _lockObject = new object();
+
+        [NotNull, ItemNotNull]
+        private readonly LinkedList<ICustomConstructorParameterResolver> _customConstructorParameterResolvers = new LinkedList<ICustomConstructorParameterResolver>();
+
+        private readonly Dictionary<Type, object> _typeToCachedInstances = new Dictionary<Type, object>();
+
+        private readonly Stack<Type> _currentlyResolvedTypeStack = new Stack<Type>();
+
+        private readonly ILog _logger;
+        private readonly DiBasedObjectFactoryEx _diBasedObjectFactoryEx;
+        private readonly ServiceResolver _serviceResolver;
+        private bool _isDisposed = false;
 
         /// <summary>
         /// Constructor.
         /// This class creates an instance of a type specified in method <see cref="CreateInstance"/> and dependencies using the default implementations,<br/>
-        /// or custom type resolution provided  by <see cref="TryResolveConstructorParameterValueDelegate"/> in parameter<br/>
-        /// <paramref name="tryResolveConstructorParameterValueDelegate"></paramref>.<br/>
-        /// If <paramref name="tryResolveConstructorParameterValueDelegate"></paramref>.<see cref="TryResolveConstructorParameterValueDelegate"/> resolves<br/>
+        /// or custom type resolution provided  by <see cref="ICustomConstructorParameterResolver"/> registered by method <see cref="IDefaultImplementationBasedObjectFactoryEx.RegisterCustomConstructorParameterResolvers"/>.<br/>
+        /// If <see cref="ICustomConstructorParameterResolver"/> resolves<br/>
         /// the type, it will be used. Otherwise, any type in dependencies will transitively be resolved using default implementations of interfaces found<br/>
         /// in assembly  where the type is (or if the resolved type is not an interface, an instance of a type will be created via reflection).
         /// </summary>
-        /// <param name="resolvedTypeInstanceWasCreatedHandler">Event handler for <see cref="ResolvedTypeInstanceWasCreated"/> event.</param>
-        /// <param name="tryResolveConstructorParameterValueDelegate">
-        /// A service provider.
-        /// </param>
         /// <param name="resolvedTypeInstanceCanBeCached">If the function returns true, the resolved type instance will be cached and<br/>
         /// re-used when injecting the type in other (or same) class constructor.<br/>
         /// Otherwise, a new instance of the type will be created every time it is injected.<br/>
@@ -34,42 +41,54 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// and not the implementation.
         /// </param>
         /// <param name="logger">Logger. If the value is null <see cref="LogToConsole"/> will be used.</param>
-        public DefaultImplementationBasedObjectFactory(Action<ResolvedTypeInstanceWasCreated> resolvedTypeInstanceWasCreatedHandler,
-            TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValueDelegate,
+        public DefaultImplementationBasedObjectFactory(
             Func<Type, bool> resolvedTypeInstanceCanBeCached,
             ILog logger = null)
         {
-            
-            LocalLoggerAmbientContext.Context = logger ?? new LogToConsole(LogLevel.Debug);
+            _resolvedTypeInstanceCanBeCached = resolvedTypeInstanceCanBeCached;
+            _logger = logger ?? new LogToConsole(LogLevel.Debug);
 
-            ServiceResolutionContextData.TypeResolutionContext = new TypeResolutionContext(resolvedTypeInstanceCanBeCached, tryResolveConstructorParameterValueDelegate);
-           
-            _noServiceProviderDiBasedObjectFactory = new NoServiceProviderDiBasedObjectFactory(this);
-            _noServiceProviderDiBasedObjectFactory.ResolvedTypeInstanceWasCreatedEvent += (sender, e) =>
-            {
-                resolvedTypeInstanceWasCreatedHandler(e);
-            };
-
-            _serviceResolver = new DefaultImplementationBasedObjectFactoryServiceResolver(_noServiceProviderDiBasedObjectFactory);
-            _noServiceProviderDiBasedObjectFactory.ServiceResolver = _serviceResolver;
+            _diBasedObjectFactoryEx = new DiBasedObjectFactoryEx(this);
+            _serviceResolver = new ServiceResolver(this);
         }
 
         /// <inheritdoc />
         public object CreateInstance(Type typeToResolve)
         {
+            LocalLoggerAmbientContext.Context = this._logger;
+
             lock (_lockObject)
             {
                 try
                 {
-                    ServiceResolutionContextData.TypeResolutionContext.MainResolvedType = typeToResolve;
+                    _currentlyResolvedTypeStack.Push(typeToResolve);
 
-                    return _noServiceProviderDiBasedObjectFactory.CreateInstance(typeToResolve, _serviceResolver,
-                        ServiceResolutionContextData.TypeResolutionContext.TryResolveConstructorParameterValueDelegate,
-                        LocalLoggerAmbientContext.Context);
+                    return _diBasedObjectFactoryEx.CreateInstance(typeToResolve, _serviceResolver, TryResolveConstructorParameterValue,
+                        _logger);
                 }
                 finally
                 {
-                    ServiceResolutionContextData.TypeResolutionContext.MainResolvedType = null;
+
+                    if (_currentlyResolvedTypeStack.Count > 0)
+                    {
+                        var currentlyResolvedType = _currentlyResolvedTypeStack.Peek();
+
+                        if (currentlyResolvedType == typeToResolve)
+                        {
+                            _currentlyResolvedTypeStack.Pop();
+                        }
+                        else
+                        {
+                            this._logger.ErrorFormat("Invalid state reached. The top type in stack [{0}] should be [{1}].",
+                                nameof(_currentlyResolvedTypeStack), typeToResolve);
+                        }
+                    }
+                    else
+                    {
+                        this._logger.ErrorFormat("Invalid state reached. The stack [{0}] is empty after the type [{1}] was resolved.",
+                            nameof(_currentlyResolvedTypeStack), typeToResolve);
+
+                    }
                 }
             }
         }
@@ -77,131 +96,201 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// <inheritdoc />
         public object GetOrCreateInstance(Type typeToResolve)
         {
-            if (ServiceResolutionContextData.TypeResolutionContext.TypeToResolvedInstance.TryGetValue(typeToResolve, out var resolvedValue))
-                return resolvedValue;
+            LocalLoggerAmbientContext.Context = this._logger;
 
-            return CreateInstance(typeToResolve);
+            lock (_lockObject)
+            {
+                if (!_typeToCachedInstances.TryGetValue(typeToResolve, out var resolvedValue))
+                {
+                    resolvedValue = CreateInstance(typeToResolve);
+                    _typeToCachedInstances[typeToResolve] = resolvedValue;
+                }
+
+                return resolvedValue;
+            }
+        }
+
+        private (bool parameterValueWasResolved, object resolvedValue) TryResolveConstructorParameterValue([NotNull] Type constructedObjectType, [NotNull] System.Reflection.ParameterInfo parameterInfo)
+        {
+            if (_typeToCachedInstances.TryGetValue(parameterInfo.ParameterType, out var cachedValue))
+                return (true, cachedValue);
+
+            foreach (var customConstructorParameterResolver in _customConstructorParameterResolvers)
+            {
+                var result = customConstructorParameterResolver.CreateConstructorParameterValue(
+                    this, constructedObjectType, parameterInfo);
+
+                if (result.parameterValueWasResolved)
+                {
+                    if (_resolvedTypeInstanceCanBeCached(parameterInfo.ParameterType) && result.resolvedValue != null)
+                        _typeToCachedInstances[parameterInfo.ParameterType] = result.resolvedValue;
+
+                    
+                    if (result.resolvedValue != null && DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                        LocalLoggerAmbientContext.Context.InfoFormat("Created an instance of type [{0}] for type [{1}] using custom constructor parameter resolver [{2}].",
+                            result.resolvedValue.GetType().FullName ?? String.Empty,
+                            parameterInfo.ParameterType.FullName,
+                            customConstructorParameterResolver.Identifier);
+
+                    return result;
+                }
+            }
+
+            return (false, null);
+        }
+
+        public event EventHandler<ResolvedTypeInstanceWasCreated> ResolvedTypeInstanceWasCreated;
+
+        #region IDefaultImplementationBasedObjectFactoryEx
+        /// <inheritdoc />
+        public IEnumerable<ICustomConstructorParameterResolver> GetCustomConstructorParameterResolvers()
+        {
+            lock (_lockObject)
+            {
+                return _customConstructorParameterResolvers;
+            }
         }
 
         /// <inheritdoc />
-        private class DefaultImplementationBasedObjectFactoryServiceResolver : IServiceResolver
+        public void RemoveAllCustomConstructorParameterResolvers()
         {
-            private readonly NoServiceProviderDiBasedObjectFactory _noServiceProviderDiBasedObjectFactory;
-
-            public DefaultImplementationBasedObjectFactoryServiceResolver(NoServiceProviderDiBasedObjectFactory noServiceProviderDiBasedObjectFactory)
+            lock (_lockObject)
             {
-                _noServiceProviderDiBasedObjectFactory = noServiceProviderDiBasedObjectFactory;
+                _customConstructorParameterResolvers.Clear();
             }
-           
-            /// <inheritdoc />
+        }
+
+        /// <inheritdoc />
+        public void RegisterCustomConstructorParameterResolvers(ICustomConstructorParameterResolver customConstructorParameterResolver)
+        {
+            lock (_lockObject)
+            {
+                var currentResolverNode = this._customConstructorParameterResolvers.First;
+
+                while (currentResolverNode != null)
+                {
+                    // If new resolver has higher priority than the current one, lets insert it before the current one
+                    if (customConstructorParameterResolver.Priority > currentResolverNode.Value.Priority)
+                    {
+                        _customConstructorParameterResolvers.AddBefore(currentResolverNode, customConstructorParameterResolver);
+                        return;
+                    }
+
+                    currentResolverNode = currentResolverNode.Next;
+                }
+
+                this._customConstructorParameterResolvers.AddLast(customConstructorParameterResolver);
+            }
+        }
+
+        /// <inheritdoc />
+        public void UnregisterCustomConstructorParameterResolver(Guid customConstructorParameterResolverIdentifier)
+        {
+            lock (_lockObject)
+            {
+                var currentResolverNode = this._customConstructorParameterResolvers.First;
+
+                while (currentResolverNode != null)
+                {
+                    if (currentResolverNode.Value.Identifier == customConstructorParameterResolverIdentifier)
+                    {
+                        _customConstructorParameterResolvers.Remove(currentResolverNode);
+                        return;
+                    }
+
+                    currentResolverNode = currentResolverNode.Next;
+                }
+            }
+        }
+        #endregion
+
+        private class LocalLoggerAmbientContext : ThreadStaticAmbientContext<ILog, NullLog>
+        {
+
+        }
+
+        private class ServiceResolver : IServiceResolver
+        {
+            private readonly DefaultImplementationBasedObjectFactory _defaultImplementationBasedObjectFactory;
+
+            public ServiceResolver(DefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory)
+            {
+                _defaultImplementationBasedObjectFactory = defaultImplementationBasedObjectFactory;
+            }
+
             public T Resolve<T>() where T : class
             {
                 return (T)Resolve(typeof(T));
             }
 
-            /// <inheritdoc />
-            public object Resolve(Type serviceType)
+            public object Resolve(Type type)
             {
-                LocalLoggerAmbientContext.Context.ErrorFormat("The call to [{0}.{1}({2})] should have never happened.",
-                    this.GetType().FullName, nameof(Resolve), nameof(serviceType));
-                
-                var typeResolutionContext = ServiceResolutionContextData.TypeResolutionContext;
-              
-                if (typeResolutionContext.TypeToResolvedInstance.TryGetValue(serviceType, out var resolvedValue))
-                    return resolvedValue;
-
-                var resolvedInstance = _noServiceProviderDiBasedObjectFactory.CreateInstance(serviceType, this,
-                    typeResolutionContext.TryResolveConstructorParameterValueDelegate, LocalLoggerAmbientContext.Context);
-               
-                if (typeResolutionContext.ResolvedTypeInstanceCanBeCached(serviceType))
-                    typeResolutionContext.TypeToResolvedInstance[serviceType] = resolvedInstance;
-
-                return resolvedInstance;
+                return _defaultImplementationBasedObjectFactory._diBasedObjectFactoryEx.CreateInstance(type, this,
+                    this._defaultImplementationBasedObjectFactory.TryResolveConstructorParameterValue, this._defaultImplementationBasedObjectFactory._logger);
             }
         }
 
-        private class NoServiceProviderDiBasedObjectFactory : DiBasedObjectFactory
+        private class DiBasedObjectFactoryEx : DiBasedObjectFactory
         {
             private readonly DefaultImplementationBasedObjectFactory _defaultImplementationBasedObjectFactory;
 
-            /// <summary>
-            /// Event handler for events raised when instance of a type is created.
-            /// </summary>
-            public EventHandler<ResolvedTypeInstanceWasCreated> ResolvedTypeInstanceWasCreatedEvent;
-
-            public NoServiceProviderDiBasedObjectFactory(DefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory)
+            public DiBasedObjectFactoryEx(DefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory)
             {
                 _defaultImplementationBasedObjectFactory = defaultImplementationBasedObjectFactory;
             }
 
-            public DefaultImplementationBasedObjectFactoryServiceResolver ServiceResolver { get; set; }
-
             protected override object CreateInstance(Type resolvedType, ConstructorInfo constructorInfo, object[] constructorParameterValues)
             {
-                var typeResolutionContext = ServiceResolutionContextData.TypeResolutionContext;
-                
-                if (resolvedType != typeResolutionContext.MainResolvedType && typeResolutionContext.TypeToResolvedInstance.TryGetValue(resolvedType, out var resolvedInstance))
+                if ((_defaultImplementationBasedObjectFactory._currentlyResolvedTypeStack.Count == 0 ||
+                    _defaultImplementationBasedObjectFactory._currentlyResolvedTypeStack.Peek() != resolvedType) &&
+                    _defaultImplementationBasedObjectFactory._typeToCachedInstances.TryGetValue(resolvedType, out var resolvedInstance))
                     return resolvedInstance;
 
                 var createdInstance = base.CreateInstance(resolvedType, constructorInfo, constructorParameterValues);
 
-                LocalLoggerAmbientContext.Context.DebugFormat("Resolved type [{0}] to [{1}].", resolvedType.FullName, createdInstance.GetType().FullName);
+               
 
-                if (typeResolutionContext.ResolvedTypeInstanceCanBeCached(resolvedType) &&
-                    !typeResolutionContext.TypeToResolvedInstance.ContainsKey(resolvedType))
-                    typeResolutionContext.TypeToResolvedInstance[resolvedType] = createdInstance;
+                if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                    LocalLoggerAmbientContext.Context.InfoFormat("Created an instance of type [{0}] for type [{1}].",
+                        createdInstance.GetType().FullName,
+                        resolvedType.FullName);
 
-                ResolvedTypeInstanceWasCreatedEvent?.Invoke(this, new ResolvedTypeInstanceWasCreated(resolvedType, createdInstance));
+                if (_defaultImplementationBasedObjectFactory._resolvedTypeInstanceCanBeCached(resolvedType))
+                {
+                    _defaultImplementationBasedObjectFactory._typeToCachedInstances[resolvedType] = createdInstance;
+                }
+
+                _defaultImplementationBasedObjectFactory.ResolvedTypeInstanceWasCreated?.Invoke(_defaultImplementationBasedObjectFactory,
+                    new ResolvedTypeInstanceWasCreated(resolvedType, createdInstance));
+
                 return createdInstance;
             }
+        }
 
-            protected override object ResolveConstructorParameterValue(ConstructorInfo injectedIntoConstructorInfo, System.Reflection.ParameterInfo parameterInfo)
+        public void Dispose()
+        {
+            lock (_lockObject)
             {
-                var typeResolutionContext = ServiceResolutionContextData.TypeResolutionContext;
-               
-                if (typeResolutionContext.TypeToResolvedInstance.TryGetValue(parameterInfo.ParameterType, out var resolvedInstance))
-                    return resolvedInstance;
+                if (_isDisposed)
+                    return;
 
-                var parameterValue = this.CreateInstance(parameterInfo.ParameterType,
-                    this.ServiceResolver ?? throw new InvalidOperationException($"The value of [{nameof(ServiceResolver)}] was not set."),
-                    typeResolutionContext.TryResolveConstructorParameterValueDelegate,
-                    LocalLoggerAmbientContext.Context);
-
-                if (typeResolutionContext.ResolvedTypeInstanceCanBeCached(parameterInfo.ParameterType))
-                    typeResolutionContext.TypeToResolvedInstance[parameterInfo.ParameterType] = parameterValue;
-
-                return parameterValue;
-            }
-        }
-
-        private class LocalLoggerAmbientContext : AmbientContext<ILog, NullLog>
-        {
-
-        }
-
-        private static class ServiceResolutionContextData
-        {
-            [NotNull] public static TypeResolutionContext TypeResolutionContext { get; set; } = null;
-        }
-
-        private class TypeResolutionContext
-        {
-            public TypeResolutionContext([NotNull] Func<Type, bool> resolvedTypeInstanceCanBeCached, [NotNull] TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValueDelegate)
-            {
-                ResolvedTypeInstanceCanBeCached = resolvedTypeInstanceCanBeCached;
-                TryResolveConstructorParameterValueDelegate = tryResolveConstructorParameterValueDelegate;
+                _isDisposed = true;
             }
 
-            [NotNull]
-            public Func<Type, bool> ResolvedTypeInstanceCanBeCached { get; }
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
 
-            [NotNull]
-            public TryResolveConstructorParameterValueDelegate TryResolveConstructorParameterValueDelegate { get; }
-
-            [CanBeNull] 
-            public Type MainResolvedType { get; set; }
-
-            public Dictionary<Type, object> TypeToResolvedInstance { get; } = new Dictionary<Type, object>();
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (isDisposing)
+            {
+                foreach (var cachedValue in _typeToCachedInstances.Values)
+                {
+                    if (cachedValue is IDisposable disposable)
+                        disposable.Dispose();
+                }
+            }
         }
     }
 }

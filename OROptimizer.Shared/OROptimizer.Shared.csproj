@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.3.0</PackageVersion>
-		<Version>2.3.0</Version>
+		<PackageVersion>2.4.0</PackageVersion>
+		<Version>2.4.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,8 +14,7 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-            -Added diagnostics logs for types resolved by OROptimizer.ServiceResolver.DiBasedObjectFactory. The logs are turned off by default and can be turned on by using
-			 ambient context value DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData.
+			-Improvements to IDefaultImplementationBasedObjectFactory implementation. BREAKING CHANGES.
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -41,6 +40,10 @@
 
 	<ItemGroup>
 	  <Compile Include="AmbientContext.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\CustomConstructorParameterResolverPriority.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\DefaultImplementationBasedObjectFactory.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ICustomConstructorParameterResolver.cs" />
+	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\IDefaultImplementationBasedObjectFactoryEx.cs" />
 	  <Compile Include="ServiceResolver\DiBasedObjectFactoryParametersContext.cs" />
 	  <Compile Include="ServiceResolver\IDiBasedObjectFactoryParameters.cs" />
 	  <Compile Include="ThreadStaticAmbientContext.cs" />
@@ -110,7 +113,6 @@
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerShort.cs" />
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerString.cs" />
 	  <Compile Include="Serializer\TypeBasedSimpleSerializerType.cs" />
-	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\DefaultImplementationBasedObjectFactory.cs" />
 	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ResolvedTypeInfo.cs" />
 	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ResolvedTypeInstanceWasCreated.cs" />
 	  <Compile Include="ServiceResolver\DiBasedObjectFactory.cs" />

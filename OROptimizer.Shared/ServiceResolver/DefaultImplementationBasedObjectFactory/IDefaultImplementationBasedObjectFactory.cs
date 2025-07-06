@@ -18,11 +18,12 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// in assembly where the type is (or if the resolved type is not an interface, an instance of type will be created via reflection).
         /// </summary>
         /// <param name="typeToResolve">Type to resolve.</param>
-        /// <exception cref="Exception">Throws an exception if type could not be created.</exception>
+        /// <exception cref="Exception">Throws an exception if an instance of type could not be created.</exception>
+        [NotNull]
         object CreateInstance([NotNull] Type typeToResolve);
 
         /// <summary>
-        /// If type <paramref name="typeToResolve"/> was created and cached in the past, returns the cached instance.
+        /// If type <paramref name="typeToResolve"/> was created and cached in the past using a call to <see cref="GetOrCreateInstance"/>, returns the cached instance.
         /// Otherwise, creates an instance of a type in parameter <paramref name="typeToResolve"></paramref> and dependencies using the default implementations, <br/>
         /// or custom type resolution provided by a mechanism in implementation<br/>
         /// If custom (non-default) implementation is provided it is used to resolve the parameter values<br/>
@@ -32,7 +33,14 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// </summary>
         /// <param name="typeToResolve">Type to resolve.</param>
         /// <exception cref="Exception">Throws an exception if type could not be created.</exception>
+        /// <remarks>
+        /// Calling <see cref="GetOrCreateInstance"/> never caches the type instance.
+        /// Only <see cref="GetOrCreateInstance"/> caches the type in <paramref name="typeToResolve"/>.
+        /// </remarks>
+        [NotNull]
         object GetOrCreateInstance([NotNull] Type typeToResolve);
+
+        event EventHandler<ResolvedTypeInstanceWasCreated> ResolvedTypeInstanceWasCreated;
     }
 
     /// <summary>

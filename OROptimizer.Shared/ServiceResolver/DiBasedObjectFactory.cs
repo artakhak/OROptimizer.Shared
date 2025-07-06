@@ -46,13 +46,13 @@ namespace OROptimizer.ServiceResolver
 
         [NotNull]
         private readonly Dictionary<Type, ImplementationTypeInfo> _serviceToImplementationTypeMap = new Dictionary<Type, ImplementationTypeInfo>();
-        
+      
         /// <inheritdoc />
         public object CreateInstance(Type type, IServiceResolver serviceResolver, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue, ILog logger = null)
         {
             LocalLoggerAmbientContext.Context = logger ?? new LogToConsole(LogLevel.Debug);
             LocalServiceResolverAmbientContext.Context = serviceResolver;
-
+             
             if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
                 LocalLoggerAmbientContext.Context.InfoFormat("Resolving type [{0}].", type);
 
@@ -113,7 +113,7 @@ namespace OROptimizer.ServiceResolver
                     _serviceToImplementationTypeMap[type] = implementationTypeInfo;
                 }
             }
-
+            
             var constructorParameterValuesResult = GetConstructorParameterValues(implementationTypeInfo.ImplementationType, implementationTypeInfo.ConstructorInfo, tryResolveConstructorParameterValue);
 
             if (!constructorParameterValuesResult.isSuccess)
@@ -235,12 +235,9 @@ namespace OROptimizer.ServiceResolver
                 }
                 catch (Exception e)
                 {
-                    if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
-                        LocalLoggerAmbientContext.Context.ErrorFormat("Failed to resolve parameter [{0}] of type [{1}] in constructor of type [{2}].",
+                    LocalLoggerAmbientContext.Context.Error(string.Format("Failed to resolve parameter [{0}] of type [{1}] in constructor of type [{2}].",
                             parameterInfo.Name,
-                            parameterInfo.ParameterType, implementationType);
-
-                    LocalLoggerAmbientContext.Context.Error(e);
+                            parameterInfo.ParameterType, implementationType), e);
                     
                     return (false, null, $"Failed to resolve the value of constructor parameter '{parameterInfo.Name}' of type '{parameterInfo.ParameterType.FullName}' when trying to construct an instance of '{implementationType.FullName}'.");
                 }
