@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.4.0</PackageVersion>
-		<Version>2.4.0</Version>
+		<PackageVersion>2.5.0</PackageVersion>
+		<Version>2.5.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,7 +14,8 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			-Improvements to IDefaultImplementationBasedObjectFactory implementation. BREAKING CHANGES.
+			-A small change to make sure ICustomConstructorParameterResolver register with OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory.RegisterCustomConstructorParameterResolvers
+			takes priority over resolves registered earlier that have similar priority.
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>

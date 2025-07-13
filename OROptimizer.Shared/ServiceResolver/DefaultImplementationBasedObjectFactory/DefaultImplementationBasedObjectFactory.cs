@@ -169,8 +169,9 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
 
                 while (currentResolverNode != null)
                 {
-                    // If new resolver has higher priority than the current one, lets insert it before the current one
-                    if (customConstructorParameterResolver.Priority > currentResolverNode.Value.Priority)
+                    // If new resolver has higher or similar priority than the current one, lets insert it before the current one.
+                    // We want the resolvers registered most recently to take priority over resolvers registered earlier (even if both have the same priority)
+                    if (customConstructorParameterResolver.Priority >= currentResolverNode.Value.Priority)
                     {
                         _customConstructorParameterResolvers.AddBefore(currentResolverNode, customConstructorParameterResolver);
                         return;
