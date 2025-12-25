@@ -18,9 +18,12 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// in assembly where the type is (or if the resolved type is not an interface, an instance of type will be created via reflection).
         /// </summary>
         /// <param name="typeToResolve">Type to resolve.</param>
+        /// <param name="tryResolveConstructorParameterValue">
+        /// A delegate that tries to resolve parameters of created classes. The value can be null.
+        /// </param>
         /// <exception cref="Exception">Throws an exception if an instance of type could not be created.</exception>
         [NotNull]
-        object CreateInstance([NotNull] Type typeToResolve);
+        object CreateInstance([NotNull] Type typeToResolve, [CanBeNull] TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null);
 
         /// <summary>
         /// If type <paramref name="typeToResolve"/> was created and cached in the past using a call to <see cref="GetOrCreateInstance"/>, returns the cached instance.
@@ -33,12 +36,16 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// </summary>
         /// <param name="typeToResolve">Type to resolve.</param>
         /// <exception cref="Exception">Throws an exception if type could not be created.</exception>
+        /// <param name="tryResolveConstructorParameterValue">
+        /// A delegate that tries to resolve parameters of created classes. The value can be null.
+        /// </param>
         /// <remarks>
         /// Calling <see cref="GetOrCreateInstance"/> never caches the type instance.
         /// Only <see cref="GetOrCreateInstance"/> caches the type in <paramref name="typeToResolve"/>.
         /// </remarks>
         [NotNull]
-        object GetOrCreateInstance([NotNull] Type typeToResolve);
+        object GetOrCreateInstance([NotNull] Type typeToResolve,
+            [CanBeNull] TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null);
 
         event EventHandler<ResolvedTypeInstanceWasCreated> ResolvedTypeInstanceWasCreated;
     }
@@ -56,11 +63,16 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// Otherwise, any type in dependencies will transitively be resolved using default implementations of interfaces found<br/>
         /// in assembly where the type is (or if the resolved type is not an interface, an instance of type will be created via reflection).
         /// </summary>
+        /// <param name="defaultImplementationBasedObjectFactory">Extended instance of <see cref="IDefaultImplementationBasedObjectFactory"/></param>
+        /// <param name="tryResolveConstructorParameterValue">
+        /// A delegate that tries to resolve parameters of created classes. The value can be null.
+        /// </param>
         /// <remarks>
         /// </remarks>
         /// <typeparam name="T">Type to resolve</typeparam>
         /// <exception cref="Exception">Throws an exception if type could not be created.</exception>
-        public static T CreateInstance<T>([NotNull] this IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory) where T: class
+        public static T CreateInstance<T>([NotNull] this IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory,
+            [CanBeNull] TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null) where T: class
         {
             if (defaultImplementationBasedObjectFactory.CreateInstance(typeof(T)) is T createdInstanceOfExpectedType)
                 return createdInstanceOfExpectedType;
@@ -77,10 +89,15 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// Otherwise, any type in dependencies will transitively be resolved using default implementations of interfaces found<br/>
         /// in assembly where the type is (or if the resolved type is not an interface, an instance of type will be created via reflection).
         /// </summary>
+        /// <param name="defaultImplementationBasedObjectFactory">Extended instance of <see cref="IDefaultImplementationBasedObjectFactory"/></param>
+        /// <param name="tryResolveConstructorParameterValue">
+        /// A delegate that tries to resolve parameters of created classes. The value can be null.
+        /// </param>
         /// <exception cref="Exception">Throws an exception if type could not be created.</exception>
-        public static T GetOrCreateInstance<T>([NotNull] this IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory) where T : class
+        public static T GetOrCreateInstance<T>([NotNull] this IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory,
+            [CanBeNull] TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null) where T : class
         {
-            if (defaultImplementationBasedObjectFactory.GetOrCreateInstance(typeof(T)) is T cachedOrCreatedInstanceOfExpectedType)
+            if (defaultImplementationBasedObjectFactory.GetOrCreateInstance(typeof(T), tryResolveConstructorParameterValue) is T cachedOrCreatedInstanceOfExpectedType)
                 return cachedOrCreatedInstanceOfExpectedType;
 
             throw new ArgumentException($"Failed to create an instance of type '{typeof(T).FullName}'.");

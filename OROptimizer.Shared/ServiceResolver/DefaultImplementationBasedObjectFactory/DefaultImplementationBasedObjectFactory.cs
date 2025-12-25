@@ -24,7 +24,18 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         private readonly ILog _logger;
         private readonly DiBasedObjectFactoryEx _diBasedObjectFactoryEx;
         private readonly ServiceResolver _serviceResolver;
-        private bool _isDisposed = false;
+        private bool _isDisposed;
+       
+        [CanBeNull] 
+        private TryResolveConstructorParameterValueDelegate _tryResolveConstructorParameterValue;
+
+        /// <summary>
+        /// Default constructor that does not cache resolved types and does not use any custom logger (logs to console).
+        /// </summary>
+        public DefaultImplementationBasedObjectFactory(): this(type => false)
+        {
+            
+        }
 
         /// <summary>
         /// Constructor.
@@ -53,14 +64,16 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         }
 
         /// <inheritdoc />
-        public object CreateInstance(Type typeToResolve)
+        public object CreateInstance(Type typeToResolve, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null)
         {
             LocalLoggerAmbientContext.Context = this._logger;
-
+            
             lock (_lockObject)
             {
                 try
                 {
+                    _tryResolveConstructorParameterValue = tryResolveConstructorParameterValue;
+
                     _currentlyResolvedTypeStack.Push(typeToResolve);
 
                     return _diBasedObjectFactoryEx.CreateInstance(typeToResolve, _serviceResolver, TryResolveConstructorParameterValue,
@@ -68,7 +81,7 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
                 }
                 finally
                 {
-
+                    _tryResolveConstructorParameterValue = null;
                     if (_currentlyResolvedTypeStack.Count > 0)
                     {
                         var currentlyResolvedType = _currentlyResolvedTypeStack.Peek();
@@ -94,7 +107,7 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         }
 
         /// <inheritdoc />
-        public object GetOrCreateInstance(Type typeToResolve)
+        public object GetOrCreateInstance(Type typeToResolve, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null)
         {
             LocalLoggerAmbientContext.Context = this._logger;
 
@@ -102,7 +115,7 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
             {
                 if (!_typeToCachedInstances.TryGetValue(typeToResolve, out var resolvedValue))
                 {
-                    resolvedValue = CreateInstance(typeToResolve);
+                    resolvedValue = CreateInstance(typeToResolve, tryResolveConstructorParameterValue);
                     _typeToCachedInstances[typeToResolve] = resolvedValue;
                 }
 
@@ -112,31 +125,42 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
 
         private (bool parameterValueWasResolved, object resolvedValue) TryResolveConstructorParameterValue([NotNull] Type constructedObjectType, [NotNull] System.Reflection.ParameterInfo parameterInfo)
         {
-            if (_typeToCachedInstances.TryGetValue(parameterInfo.ParameterType, out var cachedValue))
-                return (true, cachedValue);
-
-            foreach (var customConstructorParameterResolver in _customConstructorParameterResolvers)
+            lock (_lockObject)
             {
-                var result = customConstructorParameterResolver.CreateConstructorParameterValue(
-                    this, constructedObjectType, parameterInfo);
+                if (_typeToCachedInstances.TryGetValue(parameterInfo.ParameterType, out var cachedValue))
+                    return (true, cachedValue);
 
-                if (result.parameterValueWasResolved)
+                if (_tryResolveConstructorParameterValue != null)
                 {
-                    if (_resolvedTypeInstanceCanBeCached(parameterInfo.ParameterType) && result.resolvedValue != null)
-                        _typeToCachedInstances[parameterInfo.ParameterType] = result.resolvedValue;
+                    var resolvedValue = _tryResolveConstructorParameterValue(constructedObjectType, parameterInfo);
 
-                    
-                    if (result.resolvedValue != null && DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
-                        LocalLoggerAmbientContext.Context.InfoFormat("Created an instance of type [{0}] for type [{1}] using custom constructor parameter resolver [{2}].",
-                            result.resolvedValue.GetType().FullName ?? String.Empty,
-                            parameterInfo.ParameterType.FullName,
-                            customConstructorParameterResolver.Identifier);
-
-                    return result;
+                    if (resolvedValue.parameterValueWasResolved && resolvedValue.resolvedValue != null)
+                        return (true, resolvedValue.resolvedValue);
                 }
-            }
 
-            return (false, null);
+                foreach (var customConstructorParameterResolver in _customConstructorParameterResolvers)
+                {
+                    var result = customConstructorParameterResolver.CreateConstructorParameterValue(
+                        this, constructedObjectType, parameterInfo);
+
+                    if (result.parameterValueWasResolved)
+                    {
+                        if (_resolvedTypeInstanceCanBeCached(parameterInfo.ParameterType) && result.resolvedValue != null)
+                            _typeToCachedInstances[parameterInfo.ParameterType] = result.resolvedValue;
+
+
+                        if (result.resolvedValue != null && DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
+                            LocalLoggerAmbientContext.Context.InfoFormat("Created an instance of type [{0}] for type [{1}] using custom constructor parameter resolver [{2}].",
+                                result.resolvedValue.GetType().FullName ?? String.Empty,
+                                parameterInfo.ParameterType.FullName,
+                                customConstructorParameterResolver.Identifier);
+
+                        return result;
+                    }
+                }
+
+                return (false, null);
+            }
         }
 
         public event EventHandler<ResolvedTypeInstanceWasCreated> ResolvedTypeInstanceWasCreated;
@@ -248,8 +272,6 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
                     return resolvedInstance;
 
                 var createdInstance = base.CreateInstance(resolvedType, constructorInfo, constructorParameterValues);
-
-               
 
                 if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)
                     LocalLoggerAmbientContext.Context.InfoFormat("Created an instance of type [{0}] for type [{1}].",

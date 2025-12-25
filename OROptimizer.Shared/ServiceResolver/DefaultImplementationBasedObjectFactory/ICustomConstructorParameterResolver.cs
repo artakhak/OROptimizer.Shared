@@ -48,8 +48,7 @@ namespace OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory
         /// </returns>
         /// <exception cref="ApplicationException">Throws an exception parameter value cannot be created.</exception>
         (bool parameterValueWasResolved, object resolvedValue) CreateConstructorParameterValue(
-            [NotNull]
-            IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory,
+            [NotNull] IDefaultImplementationBasedObjectFactory defaultImplementationBasedObjectFactory,
             [NotNull] Type constructedObjectType,
             [NotNull] System.Reflection.ParameterInfo parameterInfo);
     

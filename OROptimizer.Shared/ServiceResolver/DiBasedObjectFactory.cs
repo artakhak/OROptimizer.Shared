@@ -38,19 +38,49 @@ namespace OROptimizer.ServiceResolver
     /// Maintains local mapping of a service type to an implementation type and constructs an on object by using a public constructor of an implementation type
     /// with maximum number of parameters.
     /// Override <see cref="DiBasedObjectFactory.InitServiceToImplementationMappings"/> to define service type to an implementation type mapping that
-    /// methods <see cref="IDiBasedObjectFactory.CreateInstance"/> will use when creating an instance of an object. 
+    /// methods <see cref="IDiBasedObjectFactory.CreateInstance(Type, IServiceResolver, TryResolveConstructorParameterValueDelegate, ILog)"/> will use when creating an instance of an object. 
     /// </summary>
     public class DiBasedObjectFactory : IDiBasedObjectFactory
     {
+        [CanBeNull] private readonly IServiceResolver _serviceResolver;
+        [CanBeNull] private readonly ILog _logger;
         private bool _serviceToImplementationTypeMapWereInitialized;
 
         [NotNull]
         private readonly Dictionary<Type, ImplementationTypeInfo> _serviceToImplementationTypeMap = new Dictionary<Type, ImplementationTypeInfo>();
-      
-        /// <inheritdoc />
-        public object CreateInstance(Type type, IServiceResolver serviceResolver, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue, ILog logger = null)
+
+        /// <summary>
+        /// Needed for <see cref="DiBasedObjectFactoryAmbientContext"/> or for calls to <see cref="CreateInstance(Type, IServiceResolver, TryResolveConstructorParameterValueDelegate, ILog)"/> overload that takes
+        /// <see cref="IServiceResolver"/> as a parameter and does not need preset <see cref="IServiceResolver"/>
+        /// </summary>
+        public DiBasedObjectFactory()
         {
-            LocalLoggerAmbientContext.Context = logger ?? new LogToConsole(LogLevel.Debug);
+            
+        }
+
+        /// <summary>
+        /// A constructor for creating object instances with dependencies resolved automatically through a service resolver.
+        /// This is intended for use with dependency injection scenarios to simplify object creation.
+        /// </summary>
+        public DiBasedObjectFactory(IServiceResolver serviceResolver, ILog logger)
+        {
+            _serviceResolver = serviceResolver;
+            _logger = logger;
+        }
+
+        /// <inheritdoc />
+        public object CreateInstance(Type type, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null, ILog logger = null)
+        {
+            if (_serviceResolver == null)
+                throw new InvalidOperationException($"The value of {typeof(IServiceResolver)}. Make sure an instance of this class was created using a constructor that uses a parameter of type {typeof(IServiceResolver)}.");
+
+            return CreateInstance(type, this._serviceResolver, tryResolveConstructorParameterValue, logger);
+        }
+
+        /// <inheritdoc />
+        public object CreateInstance(Type type, IServiceResolver serviceResolver, TryResolveConstructorParameterValueDelegate tryResolveConstructorParameterValue = null, ILog logger = null)
+        {
+            LocalLoggerAmbientContext.Context = logger ?? _logger ?? new LogToConsole(LogLevel.Debug);
             LocalServiceResolverAmbientContext.Context = serviceResolver;
              
             if (DiBasedObjectFactoryParametersContext.Context.LogDiagnosticsData)

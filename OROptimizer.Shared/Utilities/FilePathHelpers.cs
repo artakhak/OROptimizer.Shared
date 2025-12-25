@@ -55,10 +55,10 @@ namespace OROptimizer.Utilities
             if (File.Exists(fileOrFolderRelativePath))            
                 return (true, fileOrFolderRelativePath, null);
 
-            if (fileOrFolderRelativePath.StartsWith(@"..\"))
+            if (fileOrFolderRelativePath.StartsWith($"..{Path.DirectorySeparatorChar}"))
             {
-                var folderPathComponents = directoryPath.Split('\\');
-                var includedTemplateRelativePathComponents = fileOrFolderRelativePath.Split('\\');
+                var folderPathComponents = directoryPath.Split(Path.DirectorySeparatorChar);
+                var includedTemplateRelativePathComponents = fileOrFolderRelativePath.Split(Path.DirectorySeparatorChar);
 
                 var numberOfParentFolderReferences = 0;
 
