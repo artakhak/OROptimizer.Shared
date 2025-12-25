@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.5.0</PackageVersion>
-		<Version>2.5.0</Version>
+		<PackageVersion>2.6.0</PackageVersion>
+		<Version>2.6.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,8 +14,8 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			-A small change to make sure ICustomConstructorParameterResolver register with OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory.RegisterCustomConstructorParameterResolvers
-			takes priority over resolves registered earlier that have similar priority.
+			Couple of enhanceements to OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory.IDefaultImplementationBasedObjectFactory and OROptimizer.ServiceResolver.OROptimizer.ServiceResolver and corrsponding changes to default implementatons.
+			-This is not breaking change, unless custom implementation of these interfaces are used.
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
