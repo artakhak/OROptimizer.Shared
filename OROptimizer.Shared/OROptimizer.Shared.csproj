@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.6.0</PackageVersion>
-		<Version>2.6.0</Version>
+		<PackageVersion>2.7.0</PackageVersion>
+		<Version>2.7.0</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,8 +14,7 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			Couple of enhanceements to OROptimizer.ServiceResolver.DefaultImplementationBasedObjectFactory.IDefaultImplementationBasedObjectFactory and OROptimizer.ServiceResolver.OROptimizer.ServiceResolver and corrsponding changes to default implementatons.
-			-This is not breaking change, unless custom implementation of these interfaces are used.
+			-Added an implementation of OROptimizer.Diagnostics.Log.ILogHelperContext to be used as a logging context for logging to console. 
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -41,6 +40,7 @@
 
 	<ItemGroup>
 	  <Compile Include="AmbientContext.cs" />
+	  <Compile Include="Diagnostics\Log\LogHelperContextLogToConsole.cs" />
 	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\CustomConstructorParameterResolverPriority.cs" />
 	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\DefaultImplementationBasedObjectFactory.cs" />
 	  <Compile Include="ServiceResolver\DefaultImplementationBasedObjectFactory\ICustomConstructorParameterResolver.cs" />

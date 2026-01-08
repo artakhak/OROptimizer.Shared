@@ -34,8 +34,6 @@ namespace OROptimizer.Serializer
     /// </summary>
     public interface ITypeBasedSimpleSerializerAggregator
     {
-        #region Current Type Interface
-
         /// <summary>
         ///     Deserializes value from value specified in parameter <paramref name="valueToDeserialize" /> into an instance
         ///     of type <typeparamref name="T" />.
@@ -114,7 +112,5 @@ namespace OROptimizer.Serializer
         /// <param name="serializedValue">The serialized value.</param>
         /// <returns>Returns <c>true</c>, if the value was successfully serialized. returns <c>false</c> otherwise.</returns>
         bool TrySerialize([CanBeNull] object valueToSerialize, [CanBeNull] out string serializedValue);
-
-        #endregion
     }
 }

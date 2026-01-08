@@ -36,16 +36,9 @@ namespace OROptimizer.Serializer
     /// <seealso cref="OROptimizer.Serializer.ITypeBasedSimpleSerializerAggregator" />
     public class TypeBasedSimpleSerializerAggregator : ITypeBasedSimpleSerializerAggregator
     {
-        #region Member Variables
-
         private static readonly ITypeBasedSimpleSerializerAggregator _defaultSerializerAggregator;
-
         private readonly Dictionary<Type, ITypeBasedSimpleSerializer> _typeToSerializerMap = new Dictionary<Type, ITypeBasedSimpleSerializer>();
-
-        #endregion
-
-        #region  Constructors
-
+        
         static TypeBasedSimpleSerializerAggregator()
         {
             _defaultSerializerAggregator = new TypeBasedSimpleSerializerAggregator();
@@ -61,11 +54,7 @@ namespace OROptimizer.Serializer
             _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerType());
             _defaultSerializerAggregator.Register(new TypeBasedSimpleSerializerAssembly());
         }
-
-        #endregion
-
-        #region ITypeBasedSimpleSerializerAggregator Interface Implementation
-
+        
         /// <summary>
         ///     Deserializes value from value specified in parameter <paramref name="valueToDeserialize" /> into an instance
         ///     of type <typeparamref name="T" />.
@@ -253,11 +242,7 @@ namespace OROptimizer.Serializer
 
             return false;
         }
-
-        #endregion
-
-        #region Member Functions
-
+        
         /// <summary>
         ///     Gets the default serializer aggregator.
         /// </summary>
@@ -280,7 +265,5 @@ namespace OROptimizer.Serializer
 
             return null;
         }
-
-        #endregion
     }
 }
