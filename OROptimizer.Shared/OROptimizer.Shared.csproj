@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.7.0</PackageVersion>
-		<Version>2.7.0</Version>
+		<PackageVersion>2.7.1</PackageVersion>
+		<Version>2.7.1</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,7 +14,7 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			-Added an implementation of OROptimizer.Diagnostics.Log.ILogHelperContext to be used as a logging context for logging to console. 
+			-Couple of minor changes in project file to make sure README.md does not endup in output folder, and also to make sure global (solution level) compilation constants are not lost when adding new compilation symbols in this project. 
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -25,7 +25,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DefineConstants>TRACE;DEBUG;DYNAMIC_CODE_DIAGNOSTICS_TYPE_1;</DefineConstants>
+		<DefineConstants>$(DefineConstants);TRACE;DEBUG;DYNAMIC_CODE_DIAGNOSTICS_TYPE_1;</DefineConstants>
 		<OutputPath>bin\Debug\</OutputPath>
 		<NoWarn>1701;1702;1705;1591;</NoWarn>
 		<Optimize>False</Optimize>
@@ -130,10 +130,6 @@
 	  <Compile Include="Utilities\FilePathHelpers.cs" />
 	  <Compile Include="Utilities\TreeProcessor.cs" />
 	  <Compile Include="Utilities\Xml\XmlDocumentExtensions.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="README.md" />
 	</ItemGroup>
 
 	<ItemGroup>
