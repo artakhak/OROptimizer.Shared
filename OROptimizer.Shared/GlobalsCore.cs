@@ -330,6 +330,12 @@ namespace OROptimizer
 
                 foreach (var assembly in loadedAssemblies.GetAssemblies())
                 {
+                    if (string.IsNullOrWhiteSpace(assembly.Location) || !File.Exists(assembly.Location))
+                    {
+                        LogHelper.Context.Log.DebugFormat("Skipping assembly '{0}' due to missing or invalid location.", assembly);
+                        continue;
+                    }
+                    
                     CurrentInProgressDynamicAssemblyBuilder.AddReferencedAssembly(assembly.Location);
                 }
 

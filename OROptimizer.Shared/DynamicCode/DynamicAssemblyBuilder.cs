@@ -216,7 +216,17 @@ namespace OROptimizer.DynamicCode
                     var referencedAssembliesMetadata = new List<MetadataReference>();
 
                     foreach (var assemblyPath in _referencedAssemblyNameToPathMap.Values)
-                        referencedAssembliesMetadata.Add(MetadataReference.CreateFromFile(assemblyPath));
+                    {
+                        try
+                        {
+                            referencedAssembliesMetadata.Add(MetadataReference.CreateFromFile(assemblyPath));
+                        }
+                        catch
+                        {
+                            LogHelper.Context.Log.Error($"Failed to create metadata for assembly path '{assemblyPath}'.");
+                            throw;
+                        }
+                    }
 
                     var syntaxTrees = new List<SyntaxTree>();
 

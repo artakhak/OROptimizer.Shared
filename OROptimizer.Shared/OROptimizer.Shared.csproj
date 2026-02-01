@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>OROptimizer</RootNamespace>
-		<PackageVersion>2.7.1</PackageVersion>
-		<Version>2.7.1</Version>
+		<PackageVersion>2.7.2</PackageVersion>
+		<Version>2.7.2</Version>
 		<Authors>Artak Hakobyan</Authors>
 		<Company>OROptimizer</Company>
 		<Product>OROptimizer</Product>
@@ -14,13 +14,13 @@
 		<PackageProjectUrl>https://github.com/artakhak/OROptimizer.Shared</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/artakhak/OROptimizer.Shared</RepositoryUrl>
 		<PackageReleaseNotes>
-			-Couple of minor changes in project file to make sure README.md does not endup in output folder, and also to make sure global (solution level) compilation constants are not lost when adding new compilation symbols in this project. 
+			-A small fix to assembly generation code to account for the cases when Assembly.Location is an empty string (happens for some debug helper assemblies). 
 		</PackageReleaseNotes>
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
